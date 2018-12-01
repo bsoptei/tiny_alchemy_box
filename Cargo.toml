@@ -1,0 +1,27 @@
+[package]
+name = "tiny_alchemy_box"
+version = "0.1.0"
+authors = ["bsoptei <bsoptei@gmail.com>"]
+
+[dependencies]
+derive_more = "0.13.0"
+js-sys = "0.3.4"
+num-traits = "0.2"
+pest = "2.0"
+pest_derive = "2.0"
+wasm-bindgen = "0.2.28"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies.web-sys]
+version = "0.3.4"
+features = [
+  'CanvasRenderingContext2d',
+  'Document',
+  'Element',
+  'HtmlCanvasElement',
+  'HtmlCollection',
+  'HtmlElement',
+  'Window',
+]
