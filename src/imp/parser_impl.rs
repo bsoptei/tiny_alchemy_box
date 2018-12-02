@@ -16,11 +16,10 @@ impl StrToTabParser for TabParser {
     fn parse_tab(&self, input: &str) -> TabParsingResult {
         match TabParser::parse(Rule::tab, input) {
             Ok(tab_parsed) => {
-                let mut tab_temp: TabParsingResult = Err(String::default());
-                for tab_parsed_elem in tab_parsed {
-                    tab_temp = Self::extract_tab(tab_parsed_elem.into_inner());
+                match tab_parsed.map(|tab| Self::extract_tab(tab.into_inner())).next() {
+                    Some(res) => res,
+                    _ => Err(String::from("Something terrible happened!!!!"))
                 }
-                tab_temp
             }
             Err(e) => {
                 Err(
@@ -57,20 +56,15 @@ impl TabParser {
                     for (i, num) in rule.into_inner().enumerate() {
                         let num_str = num.as_str();
                         if i == 0 {
-                            match str2num(num_str)
+                            string_temp = str2num(num_str)
                                 .and_then(
-                                    |n| if n != 0 { Ok(n) } else { Err(String::from("String cannot be 0")) }) {
-                                Ok(num) => { string_temp = num }
-                                Err(e) => return Err(e)
-                            }
+                                    |n| if n != 0 { Ok(n) } else { Err(String::from("String number cannot be 0")) }
+                                )?;
                         } else if i == 1 {
                             if num_str == "X" {
                                 fret_temp = -1;
                             } else {
-                                match str2num(num_str) {
-                                    Ok(num) => { fret_temp = num }
-                                    Err(e) => return Err(e)
-                                }
+                                fret_temp = str2num(num_str)?;
                             }
                         }
                     }
@@ -148,19 +142,19 @@ impl TabParser {
     }
 
     fn extract_time_signature(rules: Pairs<Rule>) -> Result<TimeSignature, String> {
-        let mut upper_temp = Err(String::default());
+        let mut upper_temp = 0;
         let mut lower_temp: Option<Length> = None;
 
         for (i, num_info) in rules.enumerate() {
             let num_info_str = num_info.as_str();
             if i == 0 {
-                upper_temp = str2num(num_info_str);
+                upper_temp = str2num(num_info_str)?;
             } else if i == 1 {
                 lower_temp = Length::from_token(num_info_str);
             }
         }
-        match (upper_temp, lower_temp) {
-            (Ok(upper_temp), Some(lower_temp)) => {
+        match lower_temp {
+            Some(lower_temp) => {
                 Ok(TimeSignature::new_lower_length(upper_temp, lower_temp))
             }
             _ => Err(String::from("Wrong time signature."))
@@ -185,20 +179,14 @@ impl TabParser {
                     if s.starts_with("|") {
                         bar_end = BarEnd::Regular;
                     } else if s.starts_with(":|") {
-                        bar_end = BarEnd::Repeat(str2num(&s[2..]).unwrap_or_else(|_| 2));
+                        bar_end = BarEnd::Repeat(str2num(&s[2..])?);
                     }
                 }
                 Rule::notes => {
-                    match Self::extract_notes(bar_elem_concrete.into_inner()) {
-                        Ok(notes) => { tab_items.push(notes) }
-                        Err(e) => return Err(e)
-                    }
+                    tab_items.push(Self::extract_notes(bar_elem_concrete.into_inner())?);
                 }
                 Rule::rest => {
-                    match Self::extract_rest(bar_elem_concrete.into_inner()) {
-                        Ok(rest) => { tab_items.push(rest) }
-                        Err(e) => return Err(e)
-                    }
+                    tab_items.push(Self::extract_rest(bar_elem_concrete.into_inner())?);
                 }
                 _ => {}
             }
@@ -210,9 +198,9 @@ impl TabParser {
         let mut time_signature = TimeSignature::common_time();
         let mut bars_temp: Vec<Bar> = Vec::new();
         let mut song_title = String::from("");
-        let mut num_of_strings = Err(String::default());
+        let mut num_of_strings = 0;
         let mut song_tuning = String::from("");
-        let mut tempo = Err(String::default());
+        let mut tempo = 0;
 
         for tab_elem in rules {
             match tab_elem.as_rule() {
@@ -225,7 +213,7 @@ impl TabParser {
                     for num in tab_elem.into_inner() {
                         num_of_strings = str2num(num.as_str()).and_then(
                             |n| if n > 0 { Ok(n) } else { Err(format!("Invalid number of strings {}", n)) }
-                        );
+                        )?;
                     }
                 }
                 Rule::tuning_declaration => {
@@ -235,35 +223,23 @@ impl TabParser {
                 }
                 Rule::tempo_declaration => {
                     for num in tab_elem.into_inner() {
-                        tempo = str2num(num.as_str());
+                        tempo = str2num(num.as_str())?;
                     }
                 }
                 Rule::time_signature => {
-                    match Self::extract_time_signature(tab_elem.into_inner()) {
-                        Ok(new_signature) => { time_signature = new_signature; }
-                        Err(e) => return Err(e)
-                    }
+                    time_signature = Self::extract_time_signature(tab_elem.into_inner())?
                 }
                 Rule::bar => {
-                    match Self::extract_bar(tab_elem.into_inner(), time_signature) {
-                        Ok(bar) => { bars_temp.push(bar) }
-                        Err(e) => return Err(e)
-                    }
+                    bars_temp.push(Self::extract_bar(tab_elem.into_inner(), time_signature)?);
                 }
                 _ => {}
             }
         }
-        match (&num_of_strings, &tempo) {
-            (Ok(num_of_strings), Ok(tempo)) =>
-                Ok(
-                    Tab::new(
-                        TabMetaData::new(song_title, *num_of_strings, song_tuning, *tempo),
-                        bars_temp)
-                ),
-            (Err(e1), Err(e2)) => Err(format!("{:#?}, {:#?}", e1, e2)),
-            (Err(e1), _) => Err(format!("{:#?}", e1)),
-            (_, Err(e2)) => Err(format!("{:#?}", e2))
-        }
+        Ok(
+            Tab::new(
+                TabMetaData::new(song_title, num_of_strings, song_tuning, tempo),
+                bars_temp)
+        )
     }
 }
 
