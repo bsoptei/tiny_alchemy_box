@@ -35,10 +35,10 @@ impl<'a> DrawableBarStart<'a> {
     }
 }
 
-pub struct DrawableNotes<'a> { notes: &'a Vec<Note>, length: Length, line_n: f64, n_of_strings: u8 }
+pub struct DrawableNotes<'a> { notes: &'a [Note], length: Length, line_n: f64, n_of_strings: u8 }
 
 impl<'a> DrawableNotes<'a> {
-    pub fn new(notes: &'a Vec<Note>, length: Length, line_n: f64, n_of_strings: u8) -> Self {
+    pub fn new(notes: &'a [Note], length: Length, line_n: f64, n_of_strings: u8) -> Self {
         Self { notes, length, line_n, n_of_strings }
     }
 
@@ -141,7 +141,7 @@ impl Drawable<Context> for BarDots {
 impl Drawable<Context> for NotesModifier {
     fn draw(&self, context: &Context, position: Coordinate2D<f64>) -> () {
         let mod_text = match &self {
-            &NotesModifier::Vibrato => String::from("~~"),
+            NotesModifier::Vibrato => String::from("~~"),
             _ => format!("{:?}", &self)
         };
         fill_text(context, &mod_text, position, None);

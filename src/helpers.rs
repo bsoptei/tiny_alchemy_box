@@ -69,7 +69,7 @@ pub fn prepare_arc(
 }
 
 pub fn clear_canvas(context: &CanvasRenderingContext2d, bottom_right: Coordinate2D<f64>) -> () {
-    context.clear_rect(0.0, 0.0, bottom_right.x.0.into(), bottom_right.y.0.into());
+    context.clear_rect(0.0, 0.0, bottom_right.x.0, bottom_right.y.0);
 }
 
 pub fn canvas_bottom_right(canvas: &HtmlCanvasElement) -> Coordinate2D<f64> {

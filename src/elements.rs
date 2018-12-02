@@ -100,7 +100,7 @@ pub enum NotesModifier {
     SL,
     PM,
     HM,
-    Vibrato
+    Vibrato,
 }
 
 impl FromToken for NotesModifier {
@@ -182,11 +182,11 @@ impl TimeSignature {
         Self::new(4, 4)
     }
 
-    pub fn get_upper(&self) -> u8 {
+    pub fn get_upper(self) -> u8 {
         self.upper
     }
 
-    pub fn get_lower(&self) -> u8 {
+    pub fn get_lower(self) -> u8 {
         self.lower.into()
     }
 }
@@ -269,7 +269,6 @@ pub struct Tab {
 }
 
 impl Tab {
-
     pub fn new(metadata: TabMetaData, bars: Vec<Bar>) -> Self {
         Self { metadata, bars }
     }
@@ -285,17 +284,17 @@ impl Tab {
 
     pub fn into_lines(self, max_items_per_line: usize) -> Vec<TabLine> {
         let bars = self.bars;
-        let lengths = bars.iter().map(|bar| bar.length()).collect::<Vec<usize>>();
+        let lengths = bars.iter().map(|tab_bar| tab_bar.length()).collect::<Vec<usize>>();
         let bars_len = bars.len();
         let mut temp_bars: Vec<Vec<Bar>> = Vec::new();
 
         let mut temp: Vec<Bar> = Vec::new();
         let mut counter = 0;
 
-        for (i, bar) in bars.into_iter().enumerate() {
+        for (i, tab_bar) in bars.into_iter().enumerate() {
             let next_bar_len = *(lengths.get(i + 1).unwrap_or_else(|| &0usize));
-            counter += bar.length();
-            temp.push(bar);
+            counter += tab_bar.length();
+            temp.push(tab_bar);
 
             if counter >= max_items_per_line ||
                 counter + next_bar_len > max_items_per_line ||
@@ -305,7 +304,7 @@ impl Tab {
                 counter = 0;
             }
         }
-        temp_bars.into_iter().map(|bars| TabLine::new(bars)).collect()
+        temp_bars.into_iter().map(TabLine::new).collect()
     }
 }
 

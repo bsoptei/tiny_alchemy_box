@@ -39,8 +39,8 @@ mod cvh {
         }
 
         pub fn draw_tab(self) -> () {
-            &self.init_drawing();
-            &self.tab_meta_data.draw(&self.context, Coordinate2D::new(X(10.0), Y(20.0)));
+            self.init_drawing();
+            self.tab_meta_data.draw(&self.context, Coordinate2D::new(X(10.0), Y(20.0)));
 
             let lines = &self.tab_lines;
             let mut current_signature: Option<TimeSignature> = None;
@@ -56,11 +56,11 @@ mod cvh {
                 StringLines::new(self.n_of_strings(), line_n_f64, X(self.canvas.width().into()))
                     .draw(&self.context);
 
-                for bar in line.get_bars().iter() {
-                    DrawableBarStart::new(bar.get_start(), self.n_of_strings())
+                for tab_bar in line.get_bars().iter() {
+                    DrawableBarStart::new(tab_bar.get_start(), self.n_of_strings())
                         .draw(&self.context, start_pos.at_x(sizes::current_x(x0, items_in_line)));
 
-                    let bar_sig = Some(*bar.get_time_signature());
+                    let bar_sig = Some(*tab_bar.get_time_signature());
 
                     if bar_sig != current_signature {
                         current_signature = bar_sig;
@@ -75,10 +75,10 @@ mod cvh {
                         }
                         items_in_line += 1;
                     }
-                    self.draw_tab_items(bar.get_items(), line_n_f64, items_in_line as f64);
-                    items_in_line += bar.length() + 2;
+                    self.draw_tab_items(tab_bar.get_items(), line_n_f64, items_in_line as f64);
+                    items_in_line += tab_bar.length() + 2;
 
-                    DrawableBarEnd::new(bar.get_end(), self.n_of_strings())
+                    DrawableBarEnd::new(tab_bar.get_end(), self.n_of_strings())
                         .draw(&self.context, start_pos.at_x(sizes::current_x(x0, items_in_line)));
                 }
             }
@@ -106,7 +106,7 @@ mod cvh {
             clear_canvas(&self.context, canvas_bottom_right(canvas));
         }
 
-        fn draw_tab_items(&self, items: &Vec<TabItem>, line_n: f64, items_in_line: f64) -> () {
+        fn draw_tab_items(&self, items: &[TabItem], line_n: f64, items_in_line: f64) -> () {
             for (item_n, item) in items.iter().enumerate() {
                 let position = Coordinate2D::new(
                     sizes::x_by_item_n(item_n as f64 + items_in_line),
@@ -166,18 +166,16 @@ impl Visualizer<()> for CanvasVisualizer {
         let maybe_error_msg_holder = get_by_id("error_msg_holder");
         match tab_parsing_result {
             Ok(tab) => {
-                match (maybe_canvas, maybe_context, maybe_error_msg_holder) {
-                    (Some(canvas), Some(context), Some(error_msg_holder)) => {
-                        error_msg_holder.set_inner_html("");
-                        cvh::CanvasVisualizerHelper::new(
-                            canvas, context, tab.get_metadata().clone(), tab.into_lines(MAX_ITEMS_PER_LINE),
-                        ).draw_tab();
-                    }
-                    _ => {}
+                if let (Some(canvas), Some(context), Some(error_msg_holder)) =
+                (maybe_canvas, maybe_context, maybe_error_msg_holder) {
+                    error_msg_holder.set_inner_html("");
+                    cvh::CanvasVisualizerHelper::new(
+                        canvas, context, tab.get_metadata().clone(), tab.into_lines(MAX_ITEMS_PER_LINE),
+                    ).draw_tab();
                 }
             }
             Err(msg) => {
-                for error_msg_holder in maybe_error_msg_holder {
+                if let Some(error_msg_holder) = maybe_error_msg_holder {
                     error_msg_holder.set_inner_html(&msg);
                 }
             }

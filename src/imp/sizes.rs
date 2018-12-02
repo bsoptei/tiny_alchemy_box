@@ -13,7 +13,7 @@ pub fn item_width() -> X<f64> {
 }
 
 pub fn line_height(n_of_strings: u8) -> Y<f64> {
-    space_between_strings() * (n_of_strings - 1) as f64
+    space_between_strings() * f64::from(n_of_strings - 1)
 }
 
 pub fn line_width_default() -> LineWidth<f64> {

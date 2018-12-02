@@ -34,7 +34,7 @@ impl StrToTabParser for TabParser {
 }
 
 impl TabParser {
-    fn extract_num<Num: FromStr>(rule: Pair<Rule>) -> Result<Num, String> {
+    fn extract_num<Num: FromStr>(rule: &Pair<Rule>) -> Result<Num, String> {
         match rule.as_rule() {
             Rule::num => str2num(rule.as_str()),
             _ => Err(format!("Invalid input {}", rule.as_str()))
@@ -76,7 +76,7 @@ impl TabParser {
                 Rule::dot => is_dotted = true,
                 Rule::tuplet => {
                     for notes_elem_concrete in rule.into_inner() {
-                        tuplet = Self::extract_num(notes_elem_concrete).unwrap_or_else(|_| 2);
+                        tuplet = Self::extract_num(&notes_elem_concrete).unwrap_or_else(|_| 2);
                     }
                 }
                 Rule::link => is_linked = true,
@@ -117,7 +117,7 @@ impl TabParser {
                 Rule::dot => is_dotted = true,
                 Rule::tuplet => {
                     for rest_elem_concrete in rest_elem.into_inner() {
-                        tuplet = Self::extract_num(rest_elem_concrete).unwrap_or_else(|_| 2);
+                        tuplet = Self::extract_num(&rest_elem_concrete).unwrap_or_else(|_| 2);
                     }
                 }
                 Rule::link => is_linked = true,
@@ -169,14 +169,13 @@ impl TabParser {
         for bar_elem_concrete in rules {
             match bar_elem_concrete.as_rule() {
                 Rule::bar_start => {
-                    match BarStart::from_token(bar_elem_concrete.as_str()) {
-                        Some(start) => { bar_start = start }
-                        _ => {}
+                    if let Some(start) = BarStart::from_token(bar_elem_concrete.as_str()) {
+                        bar_start = start
                     }
                 }
                 Rule::bar_end => {
                     let s = bar_elem_concrete.as_str();
-                    if s.starts_with("|") {
+                    if s.starts_with('|') {
                         bar_end = BarEnd::Regular;
                     } else if s.starts_with(":|") {
                         bar_end = BarEnd::Repeat(str2num(&s[2..])?);
