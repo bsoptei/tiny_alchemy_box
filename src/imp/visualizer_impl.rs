@@ -1,5 +1,7 @@
-use helpers::*;
-use {TabParsingResult, Visualizer};
+use crate::{
+    helpers::*,
+    TabParsingResult, Visualizer,
+};
 
 #[allow(dead_code)]
 pub struct PrintVisualizer;
@@ -13,12 +15,15 @@ impl Visualizer<()> for PrintVisualizer {
 pub struct CanvasVisualizer;
 
 mod cvh {
-    use elements::*;
-    use helpers::*;
+    use crate::{
+        Coordinate2D, X, Y,
+        elements::*,
+        helpers::*,
+        imp::sizes,
+        imp::drawable_components::*,
+    };
+    use super::width_of_main;
     use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
-    use {Coordinate2D, X, Y};
-    use imp::sizes;
-    use imp::drawable_components::*;
 
     pub struct CanvasVisualizerHelper {
         canvas: HtmlCanvasElement,
@@ -96,11 +101,7 @@ mod cvh {
 
         fn init_drawing(&self) -> () {
             let canvas = &self.canvas;
-            let width =
-                get_first_by_tag_name("main")
-                    .map(|main| main.client_width())
-                    .unwrap_or_else(|| 0) as u32;
-            canvas.set_width(width);
+            canvas.set_width(width_of_main());
             canvas.set_height(self.calculate_height());
             canvas.set_hidden(false);
             clear_canvas(&self.context, canvas_bottom_right(canvas));
@@ -156,7 +157,7 @@ mod cvh {
     }
 }
 
-const MAX_ITEMS_PER_LINE: usize = 40;
+const MAX_ITEMS_PER_LINE: usize = 50;
 
 impl Visualizer<()> for CanvasVisualizer {
     fn visualize(&self, tab_parsing_result: TabParsingResult) -> () {
@@ -170,7 +171,10 @@ impl Visualizer<()> for CanvasVisualizer {
                 (maybe_canvas, maybe_context, maybe_error_msg_holder) {
                     error_msg_holder.set_inner_html("");
                     cvh::CanvasVisualizerHelper::new(
-                        canvas, context, tab.get_metadata().clone(), tab.into_lines(MAX_ITEMS_PER_LINE),
+                        canvas,
+                        context,
+                        tab.get_metadata().clone(),
+                        tab.into_lines(MAX_ITEMS_PER_LINE),
                     ).draw_tab();
                 }
             }
@@ -181,4 +185,10 @@ impl Visualizer<()> for CanvasVisualizer {
             }
         }
     }
+}
+
+fn width_of_main() -> u32 {
+    get_first_by_tag_name("main")
+        .map(|main| main.client_width())
+        .unwrap_or_else(|| 0) as u32
 }

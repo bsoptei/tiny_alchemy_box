@@ -1,5 +1,7 @@
-use elements::Length::*;
-use FromToken;
+use crate::{
+    elements::Length::*,
+    FromToken,
+};
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Length {
@@ -56,7 +58,7 @@ impl From<u8> for Length {
 
 impl Into<u8> for Length {
     fn into(self) -> u8 {
-        use Length::*;
+        use crate::Length::*;
         match self {
             Whole => 1,
             Half => 2,
@@ -105,7 +107,7 @@ pub enum NotesModifier {
 
 impl FromToken for NotesModifier {
     fn from_token(token: &str) -> Option<Self> {
-        use NotesModifier::*;
+        use crate::NotesModifier::*;
         match token {
             "SL" => Some(SL),
             "PM" => Some(PM),

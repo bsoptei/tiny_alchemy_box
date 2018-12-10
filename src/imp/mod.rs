@@ -1,4 +1,4 @@
-use *;
+use crate::*;
 
 mod checker_impl;
 mod parser_impl;
@@ -6,9 +6,11 @@ mod visualizer_impl;
 pub mod drawable_components;
 pub mod sizes;
 
-use self::checker_impl::*;
-use self::parser_impl::*;
-use self::visualizer_impl::*;
+use self::{
+    checker_impl::*,
+    parser_impl::*,
+    visualizer_impl::*,
+};
 
 impl Dependencies<TabParser, BypassChecker, CanvasVisualizer> for Container {
     fn parser() -> TabParser {

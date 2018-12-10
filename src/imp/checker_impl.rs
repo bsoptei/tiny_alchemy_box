@@ -1,4 +1,4 @@
-use {Checker, TabParsingResult};
+use crate::{Checker, TabParsingResult};
 
 pub struct BypassChecker;
 

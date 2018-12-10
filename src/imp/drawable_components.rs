@@ -1,9 +1,11 @@
 use std::f64::consts::PI;
 use web_sys::CanvasRenderingContext2d;
-use {Coordinate2D, Radius, X, Y};
-use elements::*;
-use helpers::*;
-use imp::sizes;
+use crate::{
+    Coordinate2D, Radius, X, Y,
+    elements::*,
+    helpers::*,
+    imp::sizes,
+};
 
 pub trait Drawable<DrawingContext> {
     fn draw(&self, context: &DrawingContext, position: Coordinate2D<f64>) -> ();

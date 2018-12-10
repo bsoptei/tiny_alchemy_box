@@ -1,6 +1,6 @@
-use elements::*;
+use crate::elements::*;
 
-use *;
+use crate::*;
 #[allow(unused_imports)]
 use pest::Parser;
 use pest::error::InputLocation::{Pos, Span};

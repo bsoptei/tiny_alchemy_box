@@ -14,11 +14,10 @@ pub(crate) mod helpers;
 mod imp;
 mod tests;
 
-pub(crate) use coordinates::*;
-pub(crate) use elements::*;
+pub(crate) use crate::coordinates::*;
+pub(crate) use crate::elements::*;
 pub(crate) use std::str::FromStr;
 pub(crate) use wasm_bindgen::prelude::*;
-pub(crate) use wasm_bindgen::JsCast;
 
 pub(crate) fn str2num<Num: FromStr>(s: &str) -> Result<Num, String> {
     s.parse::<Num>().or_else(|_| Err(format!("Could not parse {}", s)))

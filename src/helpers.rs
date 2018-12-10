@@ -1,8 +1,7 @@
-use *;
+use crate::*;
 use web_sys::*;
 use std::f64::consts::PI;
-use Coordinate2D;
-use JsCast;
+use wasm_bindgen::JsCast;
 
 pub fn get_canvas_element_by_id(id: &str) -> Option<HtmlCanvasElement> {
     let maybe_canvas = get_by_id(id);
