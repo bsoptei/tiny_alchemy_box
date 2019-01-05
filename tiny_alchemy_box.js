@@ -13,19 +13,23 @@ function getUint8Memory() {
     return cachegetUint8Memory;
 }
 
+let WASM_VECTOR_LEN = 0;
+
 function passStringToWasm(arg) {
 
     const buf = cachedTextEncoder.encode(arg);
     const ptr = wasm.__wbindgen_malloc(buf.length);
     getUint8Memory().set(buf, ptr);
-    return [ptr, buf.length];
+    WASM_VECTOR_LEN = buf.length;
+    return ptr;
 }
 /**
 * @param {string} arg0
 * @returns {void}
 */
 export function process(arg0) {
-    const [ptr0, len0] = passStringToWasm(arg0);
+    const ptr0 = passStringToWasm(arg0);
+    const len0 = WASM_VECTOR_LEN;
     try {
         return wasm.process(ptr0, len0);
 
@@ -36,20 +40,13 @@ export function process(arg0) {
 
 }
 
-const stack = [];
+const heap = new Array(32);
 
-const slab = [{ obj: undefined }, { obj: null }, { obj: true }, { obj: false }];
+heap.fill(undefined);
 
-function getObject(idx) {
-    if ((idx & 1) === 1) {
-        return stack[idx >> 1];
-    } else {
-        const val = slab[idx >> 1];
+heap.push(undefined, null, true, false);
 
-        return val.obj;
-
-    }
-}
+function getObject(idx) { return heap[idx]; }
 
 export function __widl_instanceof_CanvasRenderingContext2D(idx) {
     return getObject(idx) instanceof CanvasRenderingContext2D ? 1 : 0;
@@ -116,17 +113,15 @@ function getUint32Memory() {
     return cachegetUint32Memory;
 }
 
-let slab_next = slab.length;
+let heap_next = heap.length;
 
 function addHeapObject(obj) {
-    if (slab_next === slab.length) slab.push(slab.length + 1);
-    const idx = slab_next;
-    const next = slab[idx];
+    if (heap_next === heap.length) heap.push(heap.length + 1);
+    const idx = heap_next;
+    heap_next = heap[idx];
 
-    slab_next = next;
-
-    slab[idx] = { obj, cnt: 1 };
-    return idx << 1;
+    heap[idx] = obj;
+    return idx;
 }
 
 export function __widl_f_arc_CanvasRenderingContext2D(arg0, arg1, arg2, arg3, arg4, arg5, exnptr) {
@@ -164,10 +159,6 @@ export function __widl_f_clear_rect_CanvasRenderingContext2D(arg0, arg1, arg2, a
     __widl_f_clear_rect_CanvasRenderingContext2D_target.call(getObject(arg0), arg1, arg2, arg3, arg4);
 }
 
-const __widl_f_fill_text_CanvasRenderingContext2D_target = typeof CanvasRenderingContext2D === 'undefined' ? null : CanvasRenderingContext2D.prototype.fillText || function() {
-    throw new Error(`wasm-bindgen: CanvasRenderingContext2D.fillText does not exist`);
-};
-
 const lTextDecoder = typeof TextDecoder === 'undefined' ? require('util').TextDecoder : TextDecoder;
 
 let cachedTextDecoder = new lTextDecoder('utf-8');
@@ -175,6 +166,10 @@ let cachedTextDecoder = new lTextDecoder('utf-8');
 function getStringFromWasm(ptr, len) {
     return cachedTextDecoder.decode(getUint8Memory().subarray(ptr, ptr + len));
 }
+
+const __widl_f_fill_text_CanvasRenderingContext2D_target = typeof CanvasRenderingContext2D === 'undefined' ? null : CanvasRenderingContext2D.prototype.fillText || function() {
+    throw new Error(`wasm-bindgen: CanvasRenderingContext2D.fillText does not exist`);
+};
 
 export function __widl_f_fill_text_CanvasRenderingContext2D(arg0, arg1, arg2, arg3, arg4, exnptr) {
     let varg1 = getStringFromWasm(arg1, arg2);
@@ -194,7 +189,8 @@ const __widl_f_font_CanvasRenderingContext2D_target = GetOwnOrInheritedPropertyD
 
 export function __widl_f_font_CanvasRenderingContext2D(ret, arg0) {
 
-    const [retptr, retlen] = passStringToWasm(__widl_f_font_CanvasRenderingContext2D_target.call(getObject(arg0)));
+    const retptr = passStringToWasm(__widl_f_font_CanvasRenderingContext2D_target.call(getObject(arg0)));
+    const retlen = WASM_VECTOR_LEN;
     const mem = getUint32Memory();
     mem[ret / 4] = retptr;
     mem[ret / 4 + 1] = retlen;
@@ -210,13 +206,13 @@ export function __widl_f_set_font_CanvasRenderingContext2D(arg0, arg1, arg2) {
     __widl_f_set_font_CanvasRenderingContext2D_target.call(getObject(arg0), varg1);
 }
 
-const __widl_f_get_element_by_id_Document_target = typeof Document === 'undefined' ? null : Document.prototype.getElementById || function() {
-    throw new Error(`wasm-bindgen: Document.getElementById does not exist`);
-};
-
 function isLikeNone(x) {
     return x === undefined || x === null;
 }
+
+const __widl_f_get_element_by_id_Document_target = typeof Document === 'undefined' ? null : Document.prototype.getElementById || function() {
+    throw new Error(`wasm-bindgen: Document.getElementById does not exist`);
+};
 
 export function __widl_f_get_element_by_id_Document(arg0, arg1, arg2) {
     let varg1 = getStringFromWasm(arg1, arg2);
@@ -337,12 +333,12 @@ export function __widl_f_document_Window(arg0) {
 
 }
 
-export function __wbg_newnoargs_96cbdf0d056b2fa8(arg0, arg1) {
+export function __wbg_newnoargs_6a80f84471205fc8(arg0, arg1) {
     let varg0 = getStringFromWasm(arg0, arg1);
     return addHeapObject(new Function(varg0));
 }
 
-export function __wbg_call_ee8306f6b79399de(arg0, arg1, exnptr) {
+export function __wbg_call_582b20dfcad7fee4(arg0, arg1, exnptr) {
     try {
         return addHeapObject(getObject(arg0).call(getObject(arg1)));
     } catch (e) {
@@ -354,33 +350,16 @@ export function __wbg_call_ee8306f6b79399de(arg0, arg1, exnptr) {
 }
 
 export function __wbindgen_object_clone_ref(idx) {
-    // If this object is on the stack promote it to the heap.
-    if ((idx & 1) === 1) return addHeapObject(getObject(idx));
-
-    // Otherwise if the object is on the heap just bump the
-    // refcount and move on
-    const val = slab[idx >> 1];
-    val.cnt += 1;
-    return idx;
+    return addHeapObject(getObject(idx));
 }
 
-function dropRef(idx) {
-
-    idx = idx >> 1;
-    if (idx < 4) return;
-    let obj = slab[idx];
-
-    obj.cnt -= 1;
-    if (obj.cnt > 0) return;
-
-    // If we hit 0 then free up our space in the slab
-    slab[idx] = slab_next;
-    slab_next = idx;
+function dropObject(idx) {
+    if (idx < 36) return;
+    heap[idx] = heap_next;
+    heap_next = idx;
 }
 
-export function __wbindgen_object_drop_ref(i) {
-    dropRef(i);
-}
+export function __wbindgen_object_drop_ref(i) { dropObject(i); }
 
 export function __wbindgen_throw(ptr, len) {
     throw new Error(getStringFromWasm(ptr, len));
