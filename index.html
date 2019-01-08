@@ -2,26 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <base target="_blank">
     <title>Tiny Alchemy Box</title>
     <link href="https://fonts.googleapis.com/css?family=Shadows+Into+Light" rel="stylesheet">
     <link rel="stylesheet" href="./index.css">
 </head>
 <body class="inverted">
+<header class="slightly_padded">
+    <h1 class="funny_font">Tiny Alchemy Box</h1>
+    <h2 class="funny_font">A simple tab editor</h2>
+</header>
 <div class="container">
-    <div>
-        <header class="slightly_padded">
-            <h1 class="title ghost_hover funny_font">Tiny Alchemy Box</h1>
-        </header>
-        <aside>
-            <textarea class="round_edge inverted larger_font" id="tab_script" rows="8"
-                      cols="100"></textarea>
-            <div class="buttons">
-                <button class="round_edge inverted larger_font ghost_hover funny_font" id="render">Render tab</button>
-                <button class="round_edge inverted larger_font ghost_hover funny_font" id="help">Help</button>
-            </div>
-        </aside>
-        <div class="status_bar funny_font">
+    <aside>
+        <div class="buttons">
+            <button class="larger_font ghost_hover funny_font" id="render">Render tab</button>
+            <button class="larger_font ghost_hover funny_font" id="help">Help</button>
+        </div>
+    </aside>
+    <main class="round_edge inverted">
+        <textarea class="larger_font" id="tab_script" rows="8" cols="100"></textarea>
+        <div class="status_bar funny_font inverted">
             <div class="status_bar_elem">
                 <p class="slightly_padded" id="cursor_position">Cursor position:</p>
             </div>
@@ -29,18 +28,8 @@
                 <p class="slightly_padded red" id="error_msg_holder"></p>
             </div>
         </div>
-    </div>
-    <main class="round_edge normal">
         <canvas id="display" hidden></canvas>
     </main>
-    <div class="round_edge inverted heavily_padded front" id="help_text" hidden>
-        <h2>Thanks for using <strong class="funny_font">Tiny Alchemy Box</strong>!</h2>
-        <p><a class="link" href="https://github.com/bsoptei/tiny_alchemy_box">Click here for a 5-minute
-            introduction!</a></p>
-        <p><a class="link" href="#">Click here for some example tabs!</a></p>
-        <button class="round_edge inverted larger_font ghost_hover funny_font" id="close_help">Close</button>
-    </div>
-    <footer></footer>
 </div>
 </body>
 </html>
