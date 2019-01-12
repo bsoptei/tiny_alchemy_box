@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use elements::*;
-    use Length::*;
+    use crate::elements::*;
+    use crate::Length::*;
 
     #[test]
     fn tab_into_lines() {
