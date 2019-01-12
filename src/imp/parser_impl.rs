@@ -258,14 +258,14 @@ mod tests {
 
     #[test]
     fn parser_rest() {
-        assert!(TabParser::parse(Rule::rest, "R(4L)").is_ok());
-        assert!(TabParser::parse(Rule::rest, "rest(4L)").is_ok());
-        assert!(TabParser::parse(Rule::rest, "R(4L)->").is_ok());
-        assert!(TabParser::parse(Rule::rest, "R(8L.)").is_ok());
-        assert!(TabParser::parse(Rule::rest, "R(8L3let)").is_ok());
-        assert!(TabParser::parse(Rule::rest, "R(8L.3let)").is_ok());
-        assert!(TabParser::parse(Rule::rest, "R(32L.)->").is_ok());
-        assert!(TabParser::parse(Rule::rest, "R(16L)->").is_ok());
+        assert!(TabParser::parse(Rule::rest, "R4L").is_ok());
+        assert!(TabParser::parse(Rule::rest, "rest4L").is_ok());
+        assert!(TabParser::parse(Rule::rest, "R4L->").is_ok());
+        assert!(TabParser::parse(Rule::rest, "R8L.").is_ok());
+        assert!(TabParser::parse(Rule::rest, "R8L3let").is_ok());
+        assert!(TabParser::parse(Rule::rest, "R8L.3let").is_ok());
+        assert!(TabParser::parse(Rule::rest, "R32L.->").is_ok());
+        assert!(TabParser::parse(Rule::rest, "R16L->").is_ok());
 
         assert!(TabParser::parse(Rule::rest, "R()").is_err());
     }
@@ -284,16 +284,21 @@ mod tests {
 
     #[test]
     fn parser_notes() {
-        assert!(TabParser::parse(Rule::notes, "N(S4F2S5F2S6F0,1L)").is_ok());
-        assert!(TabParser::parse(Rule::notes, "N(S4F2,1L)").is_ok());
-        assert!(TabParser::parse(Rule::notes, "notes(S4F2,1L)").is_ok());
-        assert!(TabParser::parse(Rule::notes, "N(S4F2S5F2S6F0,1L)->").is_ok());
-        assert!(TabParser::parse(Rule::notes, "N(S4F2S5F2S6F0,1L.)").is_ok());
-        assert!(TabParser::parse(Rule::notes, "N(S4F2S5F2S6F0,1L.)->").is_ok());
-        assert!(TabParser::parse(Rule::notes, "N(S4F2S5F2S6F0,1L,PM)").is_ok());
-        assert!(TabParser::parse(Rule::notes, "N(S4F2S5F2S6F0,1L,PM)->").is_ok());
-        assert!(TabParser::parse(Rule::notes, "N(S4F2S5F2S6F0,1L.,PM)").is_ok());
-        assert!(TabParser::parse(Rule::notes, "N(S4F2S5F2S6F0,1L.,PM)->").is_ok());
+        assert!(TabParser::parse(Rule::notes, "N S4F2S5F2S6F0,1L").is_ok());
+        assert!(TabParser::parse(Rule::notes, "N S4F2,1L").is_ok());
+        assert!(TabParser::parse(Rule::notes, "notes S4F2,1L").is_ok());
+        assert!(TabParser::parse(Rule::notes, "N S4F2 S5F2 S6F0, 1L->").is_ok());
+        assert!(TabParser::parse(Rule::notes, "N S4F2 S5F2 S6F0, 1L.").is_ok());
+        assert!(TabParser::parse(Rule::notes, "N S4F2 S5F2 S6F0, 1L.->").is_ok());
+        assert!(TabParser::parse(Rule::notes, "N S4F2 S5F2 S6F0, 1L, PM").is_ok());
+        assert!(TabParser::parse(Rule::notes, "N S4F2 S5F2 S6F0, 1L, PM->").is_ok());
+        assert!(TabParser::parse(Rule::notes, "N S4F2 S5F2 S6F0, 1L., PM").is_ok());
+        assert!(TabParser::parse(Rule::notes, "N S4F2 S5F2 S6F0, 1L., PM->").is_ok());
+        assert!(TabParser::parse(Rule::notes, "N S4F2, 1L, B2").is_ok());
+        assert!(TabParser::parse(Rule::notes, "N S4F2, 1L, ~~").is_ok());
+        assert!(TabParser::parse(Rule::notes, "N S4F2, 1L, SL").is_ok());
+        assert!(TabParser::parse(Rule::notes, "N S4F5, 1L, HM").is_ok());
+
     }
 
     #[test]
@@ -306,49 +311,47 @@ mod tests {
 
     #[test]
     fn parser_bar_start() {
-        assert!(TabParser::parse(Rule::bar_start, "B|").is_ok());
-        assert!(TabParser::parse(Rule::bar_start, "bar|").is_ok());
-        assert!(TabParser::parse(Rule::bar_start, "B|:").is_ok());
+        assert!(TabParser::parse(Rule::bar_start, "|").is_ok());
+        assert!(TabParser::parse(Rule::bar_start, "|:").is_ok());
 
-        assert!(TabParser::parse(Rule::bar_start, "|").is_err());
     }
 
     #[test]
     fn parser_time_signature() {
-        assert!(TabParser::parse(Rule::time_signature, "T(4/4L)").is_ok());
-        assert!(TabParser::parse(Rule::time_signature, "time(4/4L)").is_ok());
+        assert!(TabParser::parse(Rule::time_signature, "T4/4L").is_ok());
+        assert!(TabParser::parse(Rule::time_signature, "time4/4L").is_ok());
 
-        assert!(TabParser::parse(Rule::time_signature, "T(3/4L)").is_ok());
-        assert!(TabParser::parse(Rule::time_signature, "T(7/8L)").is_ok());
-        assert!(TabParser::parse(Rule::time_signature, "T(11/8L)").is_ok());
-        assert!(TabParser::parse(Rule::time_signature, "T(9/16L)").is_ok());
+        assert!(TabParser::parse(Rule::time_signature, "T3/4L").is_ok());
+        assert!(TabParser::parse(Rule::time_signature, "T7/8L").is_ok());
+        assert!(TabParser::parse(Rule::time_signature, "T11/8L").is_ok());
+        assert!(TabParser::parse(Rule::time_signature, "T9/16L").is_ok());
 
-        assert!(TabParser::parse(Rule::time_signature, "T(4/3L)").is_err());
-        assert!(TabParser::parse(Rule::time_signature, "T(/4L)").is_err());
-        assert!(TabParser::parse(Rule::time_signature, "(3/4L)").is_err());
+        assert!(TabParser::parse(Rule::time_signature, "T4/3L").is_err());
+        assert!(TabParser::parse(Rule::time_signature, "T/4L").is_err());
+        assert!(TabParser::parse(Rule::time_signature, "3/4L").is_err());
         assert!(TabParser::parse(Rule::time_signature, "T()").is_err());
-        assert!(TabParser::parse(Rule::time_signature, "T(2)").is_err());
+        assert!(TabParser::parse(Rule::time_signature, "T2").is_err());
     }
 
     #[test]
     fn parser_bar() {
-        assert!(TabParser::parse(Rule::bar, "B|N(S4F2,1L.,PM)|").is_ok());
-        assert!(TabParser::parse(Rule::bar, "B|N(S4F2,1L.,PM)->|").is_ok());
-        assert!(TabParser::parse(Rule::bar, "B|R(16L)->|").is_ok());
-        assert!(TabParser::parse(Rule::bar, "B|R(16L)|").is_ok());
-        assert!(TabParser::parse(Rule::bar, "B|R(2L)R(2L)|").is_ok());
-        assert!(TabParser::parse(Rule::bar, "B|N(S4F2,2L,PM)R(16L)|").is_ok());
-        assert!(TabParser::parse(Rule::bar, "B|N(S4F2,16L,PM)->N(S4F2,16L,PM)|").is_ok());
-        assert!(TabParser::parse(Rule::bar, "B|N(S4F2,16L,PM)N(S4F2,16L,PM)|").is_ok());
+        assert!(TabParser::parse(Rule::bar, "|N S4F2,1L.,PM|").is_ok());
+        assert!(TabParser::parse(Rule::bar, "|N S4F2,1L.,PM->|").is_ok());
+        assert!(TabParser::parse(Rule::bar, "|R16L->|").is_ok());
+        assert!(TabParser::parse(Rule::bar, "|R16L|").is_ok());
+        assert!(TabParser::parse(Rule::bar, "|R2L R2L|").is_ok());
+        assert!(TabParser::parse(Rule::bar, "|NS4F2,2L,PM R16L|").is_ok());
+        assert!(TabParser::parse(Rule::bar, "|NS4F2,16L,PM-> NS4F2,16L,PM|").is_ok());
+        assert!(TabParser::parse(Rule::bar, "|NS4F2,16L,PM NS4F2,16L,PM|").is_ok());
 
-        assert!(TabParser::parse(Rule::bar, "B|:N(S4F2,1L.,PM)|").is_ok());
-        assert!(TabParser::parse(Rule::bar, "B|:N(S4F2,1L.,PM)->|").is_ok());
-        assert!(TabParser::parse(Rule::bar, "B|:R(16L)->|").is_ok());
-        assert!(TabParser::parse(Rule::bar, "B|:R(16L)|").is_ok());
-        assert!(TabParser::parse(Rule::bar, "B|:R(2L)R(2L)|").is_ok());
-        assert!(TabParser::parse(Rule::bar, "B|:N(S4F2,2L,PM)R(16L)|").is_ok());
-        assert!(TabParser::parse(Rule::bar, "B|:N(S4F2,16L,PM)->N(S4F2,16L,PM)|").is_ok());
-        assert!(TabParser::parse(Rule::bar, "B|:N(S4F2,16L,PM)N(S4F2,16L,PM)|").is_ok());
+        assert!(TabParser::parse(Rule::bar, "|:N S4F2,1L.,PM|").is_ok());
+        assert!(TabParser::parse(Rule::bar, "|:N S4F2,1L.,PM->|").is_ok());
+        assert!(TabParser::parse(Rule::bar, "|:R16L->|").is_ok());
+        assert!(TabParser::parse(Rule::bar, "|:R16L|").is_ok());
+        assert!(TabParser::parse(Rule::bar, "|:R2LR2L|").is_ok());
+        assert!(TabParser::parse(Rule::bar, "|:N S4F2,2L,PM R16L|").is_ok());
+        assert!(TabParser::parse(Rule::bar, "|:N S4F2,16L,PM-> N S4F2,16L,PM|").is_ok());
+        assert!(TabParser::parse(Rule::bar, "|:N S4F2,16L,PM N S4F2,16L,PM|").is_ok());
     }
 
     #[test]
@@ -374,7 +377,7 @@ mod tests {
         assert!(
             TabParser::parse(
                 Rule::tab,
-                "title I'm the Ocean;\nnumber of strings 8;\ntuning DGDGCFAd;\ntempo 120;\nT(7/8L)B|N(S4F2,16L)N(S4F2,16L)|B|N(S4F1,16L)|",
+                "title I'm the Ocean;\nnumber of strings 8;\ntuning DGDGCFAd;\ntempo 120;\nT7/8L|N S4F2,16L N S4F2,16L||N S4F1,16L|",
             ).is_ok()
         );
     }

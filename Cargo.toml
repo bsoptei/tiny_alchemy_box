@@ -8,8 +8,8 @@ edition = "2018"
 derive_more = "0.13.0"
 js-sys = "0.3.4"
 num-traits = "0.2"
-pest = "2.0"
-pest_derive = "2.0"
+pest = "2.1"
+pest_derive = "2.1"
 wasm-bindgen = "0.2.29"
 
 [lib]
