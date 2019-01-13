@@ -103,6 +103,11 @@ pub enum NotesModifier {
     PM,
     HM,
     Vibrato,
+    B1,
+    B2,
+    B3,
+    B4,
+    B5,
 }
 
 impl FromToken for NotesModifier {
@@ -113,6 +118,11 @@ impl FromToken for NotesModifier {
             "PM" => Some(PM),
             "HM" => Some(HM),
             "~~" => Some(Vibrato),
+            "B1" => Some(B1),
+            "B2" => Some(B2),
+            "B3" => Some(B3),
+            "B4" => Some(B4),
+            "B5" => Some(B5),
             _ => None
         }
     }
