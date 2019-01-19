@@ -1,17 +1,19 @@
-any_text = { (('a'..'z' | 'A'..'Z'| "\'" | "!" | "?" | "." | ",") ~ WHITE_SPACE*)+ }
-bar_token = _{ "B" | "bar" }
+any_text = { ('a'..'z' | 'A'..'Z'| "\'" | "!" | "?" | "." | comma)+ }
 bar = { bar_start ~ (notes | rest)+ ~ bar_end }
 bar_end = { repeat_close | pipe }
-bar_start = { (bar_token ~ "|:") | (bar_token ~ "|") }
+bar_start = {  repeat_start | pipe }
+bend = { "B1" | "B2" | "B3" | "B4" | "B5" }
+comma = _{ "," }
 diminutive = _{ "let" }
 dot = { "." }
 fret = _{ "F" | "fret" }
 length = { "1L" | "2L" | "4L" | "8L"| "16L" | "32L" | "64L" }
 link = { "->" }
 note = { string ~ nums ~ ((fret ~ nums) | x) }
-notes = { notes_token ~ parenthesis_open ~ (note)+ ~ "," ~ length ~ dot? ~ tuplet? ~ ("," ~ notes_modifier)? ~ parenthesis_close ~ link? }
-notes_modifier = { "SL" | "PM" | "HM" | "~~" }
+notes = { notes_token ~ (note)+ ~ comma ~ length ~ dot? ~ tuplet? ~ (comma ~ notes_modifier)? ~ link? }
+notes_modifier = { "SL" | "PM" | "HM" | "~~" | bend }
 notes_token = _{ "N" | "notes" }
+number_of_strings_declaration = { "number of strings" ~ nums ~ semicolon }
 num = { ASCII_DIGIT }
 nums = { (num)+ }
 parenthesis_open = _{ "(" }
@@ -19,30 +21,25 @@ parenthesis_close = _{ ")" }
 pipe = { "|" }
 repeat_close = { ":|" ~ nums? }
 repeat_start = { "|:" }
-rest = { rest_token ~ parenthesis_open ~ length ~ dot? ~ tuplet? ~ parenthesis_close ~ link? }
+rest = { rest_token ~ length ~ dot? ~ tuplet? ~ link? }
 rest_token = _{ "R" | "rest" }
 semicolon = _{ ";" }
 slash = _{ "/" }
-space = _{ "\r\n" | "\n" | WHITE_SPACE* }
 string = _{ "S" | "string" }
-number_of_strings_token = _{ "number of strings" }
-number_of_strings_declaration = { number_of_strings_token ~ WHITE_SPACE+ ~ nums ~ semicolon }
 tab = {
     SOI ~
-    title_declaration ~ space ~
-    number_of_strings_declaration ~ space ~
-    tuning_declaration ~ space ~
-    tempo_declaration ~ space ~
-    (time_signature? ~ bar ~ space?)* ~
+    title_declaration ~
+    number_of_strings_declaration ~
+    tuning_declaration ~
+    tempo_declaration ~
+    (time_signature? ~ bar)* ~
     EOI
 }
-tempo_declaration = { tempo_token ~ WHITE_SPACE+ ~ nums ~ semicolon }
-tempo_token = _{ "tempo" }
-time_signature = { time_token ~ parenthesis_open ~ nums ~ slash ~ length ~ parenthesis_close }
+tempo_declaration = { "tempo" ~ nums ~ semicolon }
+time_signature = { time_token ~ nums ~ slash ~ length }
 time_token = _{ "T" | "time" }
-title_token = _{ "title" }
-title_declaration = { title_token ~ WHITE_SPACE+ ~ any_text ~ semicolon }
-tuning_token = _{ "tuning" }
-tuning_declaration = { tuning_token ~ WHITE_SPACE+ ~ any_text ~ semicolon }
+title_declaration = { "title" ~ any_text ~ semicolon }
+tuning_declaration = { "tuning" ~ any_text ~ semicolon }
 tuplet = { num ~ diminutive }
+WHITESPACE = _{ " " | "\r\n" | "\n" }
 x = { "X" }
