@@ -1,12 +1,3 @@
-extern crate js_sys;
-extern crate pest;
-extern crate derive_more;
-extern crate num_traits;
-
-extern crate pest_derive;
-extern crate wasm_bindgen;
-extern crate web_sys;
-
 pub(crate) mod coordinates;
 pub(crate) mod elements;
 pub(crate) mod helpers;
@@ -14,8 +5,10 @@ pub(crate) mod helpers;
 mod imp;
 mod tests;
 
-pub(crate) use crate::coordinates::*;
-pub(crate) use crate::elements::*;
+pub(crate) use crate::{
+    coordinates::*,
+    elements::*,
+};
 pub(crate) use std::str::FromStr;
 pub(crate) use wasm_bindgen::prelude::*;
 
