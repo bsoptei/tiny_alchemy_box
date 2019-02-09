@@ -1,10 +1,10 @@
-use crate::*;
-
 mod checker_impl;
 mod parser_impl;
 mod visualizer_impl;
 pub mod drawable_components;
 pub mod sizes;
+
+use crate::*;
 
 use self::{
     checker_impl::*,
