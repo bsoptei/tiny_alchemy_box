@@ -3,6 +3,7 @@ bar = { bar_start ~ (notes | rest)+ ~ bar_end }
 bar_end = { repeat_close | pipe }
 bar_start = {  repeat_start | pipe }
 bend = { "B1" | "B2" | "B3" | "B4" | "B5" }
+bpm = _{ "bpm" }
 comma = _{ "," }
 diminutive = _{ "let" }
 dot = { "." }
@@ -35,7 +36,7 @@ tab = {
     (time_signature? ~ bar)* ~
     EOI
 }
-tempo_declaration = { "tempo" ~ nums ~ semicolon }
+tempo_declaration = { "tempo" ~ nums ~ bpm ~ semicolon }
 time_signature = { time_token ~ nums ~ slash ~ length }
 time_token = _{ "T" | "time" }
 title_declaration = { "title" ~ any_text ~ semicolon }
