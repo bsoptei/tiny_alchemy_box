@@ -1,4 +1,4 @@
-any_text = { ('a'..'z' | 'A'..'Z'| "\'" | "!" | "?" | "." | comma)+ }
+any_text = { ('a'..'z' | 'A'..'Z'| "\'" | "!" | "?" | dot | "(" | ")" | num | comma)+ }
 bar = { bar_start ~ (notes | rest)+ ~ bar_end }
 bar_end = { repeat_close | pipe }
 bar_start = {  repeat_start | pipe }
