@@ -12,10 +12,6 @@ import('./tiny_alchemy_box')
             }
         });
 
-        helpButton.addEventListener('click', () => {
-            window.open('', '_blank');
-        });
-
         const boxEffects = ['keydown', 'keyup', 'keypress', 'click', 'mouseover', 'mousedown'];
 
         boxEffects.forEach((effect) => {
