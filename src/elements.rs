@@ -212,8 +212,8 @@ pub enum BarStart {
 impl FromToken for BarStart {
     fn from_token(token: &str) -> Option<Self> {
         match token {
-            "B|" => Some(BarStart::Regular),
-            "B|:" => Some(BarStart::Repeat),
+            "|" => Some(BarStart::Regular),
+            "|:" => Some(BarStart::Repeat),
             _ => None
         }
     }
