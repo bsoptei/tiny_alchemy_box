@@ -1,12 +1,11 @@
-use crate::elements::*;
-
 use crate::*;
-#[allow(unused_imports)]
-use pest::Parser;
-use pest::error::InputLocation::{Pos, Span};
-use pest::iterators::{Pair, Pairs};
+use crate::elements::*;
+use pest::{
+    Parser,
+    error::InputLocation::{Pos, Span},
+    iterators::{Pair, Pairs},
+};
 use pest_derive::*;
-
 
 #[derive(Parser)]
 #[grammar = "tab_grammar.pest"]
@@ -14,7 +13,7 @@ pub struct TabParser;
 
 impl StrToTabParser for TabParser {
     fn parse_tab(&self, input: &str) -> TabParsingResult {
-        match TabParser::parse(Rule::tab, input) {
+        match Self::parse(Rule::tab, input) {
             Ok(tab_parsed) => {
                 match tab_parsed.map(|tab| Self::extract_tab(tab.into_inner())).next() {
                     Some(res) => res,
@@ -298,7 +297,6 @@ mod tests {
         assert!(TabParser::parse(Rule::notes, "N S4F2, 1L, ~~").is_ok());
         assert!(TabParser::parse(Rule::notes, "N S4F2, 1L, SL").is_ok());
         assert!(TabParser::parse(Rule::notes, "N S4F5, 1L, HM").is_ok());
-
     }
 
     #[test]
@@ -313,7 +311,6 @@ mod tests {
     fn parser_bar_start() {
         assert!(TabParser::parse(Rule::bar_start, "|").is_ok());
         assert!(TabParser::parse(Rule::bar_start, "|:").is_ok());
-
     }
 
     #[test]
