@@ -1,7 +1,6 @@
 import('./tiny_alchemy_box')
     .then(wasm => {
         const renderButton = document.getElementById('render');
-        const helpButton = document.getElementById('help');
         const scriptBox = document.getElementById('tab_script');
         const positionIndicator = document.getElementById('cursor_position');
 
