@@ -6,6 +6,7 @@ use crate::{
     helpers::*,
     imp::sizes,
 };
+use photonix::*;
 
 pub trait Drawable<DrawingContext> {
     fn draw(&self, context: &DrawingContext, position: Coordinate2D<f64>) -> ();
@@ -128,8 +129,11 @@ impl AutoDrawable<Context> for StringLines {
 impl Drawable<Context> for TimeSignature {
     fn draw(&self, context: &Context, position: Coordinate2D<f64>) -> () {
         let font_size = sizes::font_size();
-        fill_text(context, &format!("{}", &self.get_upper()), position, Some(font_size));
-        fill_text(context, &format!("{}", &self.get_lower()), position.down(sizes::y_space()), Some(font_size));
+        let upper: u8 = *self.get_ref();
+        let lower: Length = *self.get_ref();
+        let lower_u8: u8 = lower.into();
+        fill_text(context, &format!("{}", upper), position, Some(font_size));
+        fill_text(context, &format!("{}", lower_u8), position.down(sizes::y_space()), Some(font_size));
     }
 }
 
@@ -192,7 +196,7 @@ impl Drawable<Context> for Crotchet {
 
 impl Drawable<Context> for Note {
     fn draw(&self, context: &Context, position: Coordinate2D<f64>) -> () {
-        let fret_num = self.get_fret_num();
+        let fret_num: i8 = *self.get_ref();
         let text =
             if fret_num >= 0 { format!("{}", fret_num) } else { String::from("X") };
         fill_text(context, &text, position, None);
@@ -311,13 +315,15 @@ impl<'a> Drawable<Context> for DrawableNotes<'a> {
         self.draw_note(context, position);
 
         for note in self.notes {
+            let string_num: u8 = *note.get_ref();
+
             note.draw(
                 context,
                 position.at_y(
                     sizes::y_by_line_and_string(
                         self.line_n,
                         self.n_of_strings,
-                        note.get_string_num().into()) - sizes::y_space() / 2.0
+                        string_num.into()) - sizes::y_space() / 2.0
                 ),
             );
         }
