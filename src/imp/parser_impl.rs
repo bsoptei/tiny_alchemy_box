@@ -193,7 +193,7 @@ impl TabParser {
     }
 
     fn extract_tab(rules: Pairs<Rule>) -> Result<Tab, String> {
-        let mut time_signature = TimeSignature::common_time();
+        let mut time_signature = TimeSignature::default();
         let mut bars_temp: Vec<Bar> = Vec::new();
         let mut song_title = String::from("");
         let mut num_of_strings = 0;

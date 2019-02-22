@@ -149,7 +149,7 @@ impl TabItem {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Debug, GetRef)]
+#[derive(Copy, Clone, PartialEq, Debug, GetRef, Set)]
 pub struct TimeSignature {
     upper: u8,
     lower: Length,
@@ -163,8 +163,10 @@ impl TimeSignature {
     pub fn new_lower_length(upper: u8, lower: Length) -> Self {
         Self { upper, lower }
     }
+}
 
-    pub fn common_time() -> Self {
+impl Default for TimeSignature {
+    fn default() -> Self {
         Self::new(4, 4)
     }
 }
