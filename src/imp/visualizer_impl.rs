@@ -64,7 +64,7 @@ mod cvh {
 
                 for tab_bar in line.get_ref().iter() {
                     DrawableBarStart::new(tab_bar.get_ref(), self.n_of_strings())
-                        .draw(&self.context, start_pos.at_x(sizes::current_x(x0, items_in_line)));
+                        .draw(&self.context, start_pos.set(sizes::current_x(x0, items_in_line)));
 
                     let bar_sig = Some(*tab_bar.get_ref());
 
@@ -74,9 +74,9 @@ mod cvh {
                             signature.draw(
                                 &self.context,
                                 start_pos
-                                    .at_x(sizes::current_x(x0, items_in_line))
-                                    .right(sizes::item_width())
-                                    .down(sizes::line_height(self.n_of_strings()) * 0.45),
+                                    .set(sizes::current_x(x0, items_in_line))
+                                    .modify(|x: X<f64>| x + sizes::item_width())
+                                    .modify(|y: Y<f64>| y + sizes::line_height(self.n_of_strings()) * 0.45),
                             );
                         }
                         items_in_line += 1;
@@ -85,7 +85,7 @@ mod cvh {
                     items_in_line += tab_bar.length() + 2;
 
                     DrawableBarEnd::new(tab_bar.get_ref(), self.n_of_strings())
-                        .draw(&self.context, start_pos.at_x(sizes::current_x(x0, items_in_line)));
+                        .draw(&self.context, start_pos.set(sizes::current_x(x0, items_in_line)));
                 }
             }
         }
@@ -135,20 +135,24 @@ mod cvh {
             if dotted.0 {
                 Dot.draw(
                     &self.context,
-                    position.right(sizes::item_width() * 0.5).up(sizes::y_space() * 1.45),
+                    position
+                        .modify(|x: X<f64>| x + sizes::item_width() * 0.5)
+                        .modify(|y: Y<f64>| y - sizes::y_space() * 1.45),
                 );
             }
             let linked: &Linked = item.get_ref();
             if linked.0 {
                 Link.draw(
                     &self.context,
-                    position.right(sizes::item_width() / 2.0).up(sizes::y_space()),
+                    position
+                        .modify(|x: X<f64>| x + sizes::item_width() / 2.0)
+                        .modify(|y: Y<f64>| y - sizes::y_space()),
                 );
             }
             if let Some(modifier) = item.get_ref() {
                 modifier.draw(
                     &self.context,
-                    position.down(
+                    position.modify(|y: Y<f64>| y +
                         sizes::line_height(self.n_of_strings()) + sizes::space_between_strings()
                     ),
                 );

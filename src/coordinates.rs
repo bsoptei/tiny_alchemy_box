@@ -1,5 +1,6 @@
 use derive_more::*;
 use num_traits::Num;
+use photonix::*;
 
 #[derive(Clone, Copy, Add, Div, Mul, Sub, From, PartialEq, PartialOrd, Debug)]
 pub struct X<Value: Num>(pub Value);
@@ -23,29 +24,29 @@ impl<Value: Num> Coordinate2D<Value> {
     pub fn new(x: X<Value>, y: Y<Value>) -> Self {
         Self { x, y }
     }
+}
 
-    pub fn at_x(self, x: X<Value>) -> Self {
-        Self { x, y: self.y }
+impl<Value: Num> Set<X<Value>> for Coordinate2D<Value> {
+    fn set(self, x: X<Value>) -> Self {
+            Self { x, y: self.y }
     }
+}
 
-    pub fn at_y(self, y: Y<Value>) -> Self {
+impl<Value: Num> Set<Y<Value>> for Coordinate2D<Value> {
+    fn set(self, y: Y<Value>) -> Self {
         Self { x: self.x, y }
     }
+}
 
-    pub fn up(self, y: Y<Value>) -> Self {
-        Self { x: self.x, y: self.y - y }
+impl<Value: Num> Modify<X<Value>> for Coordinate2D<Value> {
+    fn modify(self, f: impl FnOnce(X<Value>) -> X<Value>) -> Self {
+        Self { x: f(self.x), y: self.y }
     }
+}
 
-    pub fn down(self, y: Y<Value>) -> Self {
-        Self { x: self.x, y: self.y + y }
-    }
-
-    pub fn left(self, x: X<Value>) -> Self {
-        Self { x: self.x - x, y: self.y }
-    }
-
-    pub fn right(self, x: X<Value>) -> Self {
-        Self { x: self.x + x, y: self.y }
+impl<Value: Num> Modify<Y<Value>> for Coordinate2D<Value> {
+    fn modify(self, f: impl FnOnce(Y<Value>) -> Y<Value>) -> Self {
+        Self { x: self.x, y: f(self.y) }
     }
 }
 

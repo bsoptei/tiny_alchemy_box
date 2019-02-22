@@ -53,15 +53,19 @@ impl<'a> DrawableNotes<'a> {
             Length::Whole | Length::Half => stroke_circle,
             _ => fill_circle
         };
-        circle_fun(context, position.up(note_line_height), note_radius);
+        circle_fun(context, position.modify(|y: Y<f64>| y - note_line_height), note_radius);
 
-        let top = position.right(note_radius.into()).up(note_line_height * 2.0);
+        let top = position
+            .modify(|x: X<f64>| x + note_radius.into())
+            .modify(|y: Y<f64>| y - note_line_height * 2.0);
 
         if self.length != Length::Whole {
             draw_line(
                 context,
                 sizes::line_width_default(),
-                position.right(note_radius.into()).up(note_line_height),
+                position
+                    .modify(|x: X<f64>| x + note_radius.into())
+                    .modify(|y: Y<f64>| y - note_line_height),
                 top,
             );
         }
@@ -71,12 +75,12 @@ impl<'a> DrawableNotes<'a> {
     fn draw_tails(&self, context: &Context, position: Coordinate2D<f64>) -> () {
         for tail in 0..self.length.num_of_tails() {
             let current_y = position.y + Y(tail as f64 * 5.0);
-            let shifted_pos = position.at_y(current_y);
+            let shifted_pos = position.set(current_y);
             draw_line(
                 context,
                 sizes::line_width_default(),
                 shifted_pos,
-                shifted_pos.right(sizes::item_width() * 0.67),
+                shifted_pos.modify(|x: X<f64>| x + sizes::item_width() * 0.67),
             );
         }
     }
@@ -133,14 +137,14 @@ impl Drawable<Context> for TimeSignature {
         let lower: Length = *self.get_ref();
         let lower_u8: u8 = lower.into();
         fill_text(context, &format!("{}", upper), position, Some(font_size));
-        fill_text(context, &format!("{}", lower_u8), position.down(sizes::y_space()), Some(font_size));
+        fill_text(context, &format!("{}", lower_u8), position.modify(|y: Y<f64>| y + sizes::y_space()), Some(font_size));
     }
 }
 
 impl Drawable<Context> for BarDots {
     fn draw(&self, context: &Context, position: Coordinate2D<f64>) -> () {
         fill_circle(context, position, sizes::r_default() * 0.1);
-        fill_circle(context, position.down(sizes::y_space()), sizes::r_default() * 0.1);
+        fill_circle(context, position.modify(|y: Y<f64>| y + sizes::y_space()), sizes::r_default() * 0.1);
     }
 }
 
@@ -176,7 +180,7 @@ impl Drawable<Context> for Dot {
 
 impl Drawable<Context> for Tuplet {
     fn draw(&self, context: &Context, position: Coordinate2D<f64>) -> () {
-        fill_text(context, &format!("{}", self.0), position.up(sizes::y_space() * 3.5), None);
+        fill_text(context, &format!("{}", self.0), position.modify(|y: Y<f64>| y - sizes::y_space() * 3.5), None);
     }
 }
 
@@ -211,21 +215,23 @@ impl<'a> Drawable<Context> for DrawableBarStart<'a> {
             context,
             sizes::line_width_default() * 2.0,
             position,
-            position.down(height),
+            position.modify(|y: Y<f64>| y + height),
         );
         let x_space = sizes::item_width() * 0.25;
-        let p_left = position.left(x_space);
+        let p_left = position.modify(|x: X<f64>| x - x_space);
 
         if let BarStart::Repeat = self.bar_start {
             draw_line(
                 context,
                 sizes::line_width_default() * 4.0,
                 p_left,
-                p_left.down(height),
+                p_left.modify(|y: Y<f64>| y + height),
             );
             BarDots.draw(
                 context,
-                position.right(x_space * 2.0).down(height * 0.45),
+                position
+                    .modify(|x: X<f64>| x + x_space * 2.0)
+                    .modify(|y: Y<f64>| y + height * 0.45),
             );
         }
     }
@@ -239,23 +245,28 @@ impl<'a> Drawable<Context> for DrawableBarEnd<'a> {
             context,
             sizes::line_width_default() * 2.0,
             position,
-            position.down(height),
+            position.modify(|y: Y<f64>| y + height),
         );
         let x_space = sizes::item_width() * 0.25;
 
         if let BarEnd::Repeat(repeats) = self.bar_end {
             if *repeats > 2 {
-                fill_text(context, &format!("{}x", repeats), position.up(sizes::y_space() / 2.0), None);
+                fill_text(
+                    context, &format!("{}x", repeats),
+                    position.modify(|y: Y<f64>| y - sizes::y_space() / 2.0), None
+                );
             }
             draw_line(
                 context,
                 sizes::line_width_default() * 4.0,
-                position.right(x_space),
-                position.right(x_space).down(height),
+                position.modify(|x: X<f64>| x + x_space),
+                position
+                    .modify(|x: X<f64>| x + x_space)
+                    .modify(|y: Y<f64>| y + height),
             );
             BarDots.draw(
                 context,
-                position.left(x_space * 2.0).down(height * 0.45),
+                position.modify(|x: X<f64>| x - x_space * 2.0).modify(|y: Y<f64>| y + height * 0.45),
             );
         }
     }
@@ -270,20 +281,24 @@ impl Drawable<Context> for DrawableRest {
                 draw_line(
                     context,
                     sizes::line_width_default() * 5.0,
-                    position.up(small_gap),
-                    position.right(sizes::item_width() * 0.4).up(small_gap),
+                    position.modify(|y: Y<f64>| y - small_gap),
+                    position
+                        .modify(|x: X<f64>| x + sizes::item_width() * 0.4)
+                        .modify(|y: Y<f64>| y - small_gap),
                 );
             }
             Length::Half => {
                 draw_line(
                     context,
                     sizes::line_width_default() * 2.5,
-                    position.up(small_gap),
-                    position.right(sizes::item_width() * 0.4).up(small_gap),
+                    position.modify(|y: Y<f64>| y - small_gap),
+                    position
+                        .modify(|x: X<f64>| x + sizes::item_width() * 0.4)
+                        .modify(|y: Y<f64>| y - small_gap),
                 );
             }
-            Length::Quarter => { Crotchet.draw(context, position.up(larger_gap)); }
-            _ => { Quaver(self.0).draw(context, position.up(larger_gap)); }
+            Length::Quarter => { Crotchet.draw(context, position.modify(|y: Y<f64>| y - larger_gap)); }
+            _ => { Quaver(self.0).draw(context, position.modify(|y: Y<f64>| y - larger_gap)); }
         }
     }
 }
@@ -294,7 +309,9 @@ impl Drawable<Context> for Quaver {
             context,
             sizes::line_width_default() * 1.5,
             position,
-            position.left(sizes::item_width() * 0.25).down(sizes::y_space()),
+            position
+                .modify(|x: X<f64>| x - sizes::item_width() * 0.25)
+                .modify(|y: Y<f64>| y + sizes::y_space()),
         );
         for tail in 0..self.0.num_of_tails() {
             let shift = tail as f64 * 2.0;
@@ -302,7 +319,9 @@ impl Drawable<Context> for Quaver {
 
             prepare_arc(
                 context,
-                position.left(radius.into()).left(shift.into()).down(shift.into()),
+                position
+                    .modify(|x: X<f64>| x - radius.into() - shift.into())
+                    .modify(|y: Y<f64>| y + shift.into()),
                 radius, 0.0, PI, sizes::line_width_default() * 1.5,
                 false,
             );
@@ -319,7 +338,7 @@ impl<'a> Drawable<Context> for DrawableNotes<'a> {
 
             note.draw(
                 context,
-                position.at_y(
+                position.set(
                     sizes::y_by_line_and_string(
                         self.line_n,
                         self.n_of_strings,
