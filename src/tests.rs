@@ -17,9 +17,9 @@ mod tests {
         }
         let my_tab = Tab::new(
             TabMetaData::new(
-                String::from("foo"),
+                "foo",
                 4,
-                String::from("EADG"),
+                "EADG",
                 120
             ),
             bars
