@@ -1,7 +1,4 @@
-use crate::{
-    elements::Length::*,
-    FromToken,
-};
+use crate::elements::Length::*;
 use photonix::*;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -37,7 +34,7 @@ impl From<&str> for Length {
             "16L" => Sixteenth,
             "32L" => ThirtySecond,
             "64L" => SixtyFourth,
-            _ => panic![format!("Could not create Length from {}", s)]
+            _ => panic!(format!("Could not create Length from {}", s))
         }
     }
 }
@@ -103,20 +100,20 @@ pub enum NotesModifier {
     B5,
 }
 
-impl FromToken for NotesModifier {
-    fn from_token(token: &str) -> Option<Self> {
+impl From<&str> for NotesModifier {
+    fn from(s: &str) -> Self {
         use crate::NotesModifier::*;
-        match token {
-            "SL" => Some(SL),
-            "PM" => Some(PM),
-            "HM" => Some(HM),
-            "~~" => Some(Vibrato),
-            "B1" => Some(B1),
-            "B2" => Some(B2),
-            "B3" => Some(B3),
-            "B4" => Some(B4),
-            "B5" => Some(B5),
-            _ => None
+        match s {
+            "SL" => SL,
+            "PM" => PM,
+            "HM" => HM,
+            "~~" => Vibrato,
+            "B1" => B1,
+            "B2" => B2,
+            "B3" => B3,
+            "B4" => B4,
+            "B5" => B5,
+            _ => panic!(format!("Could not create NotesModifier from {}", s))
         }
     }
 }
@@ -175,12 +172,12 @@ pub enum BarStart {
     Repeat,
 }
 
-impl FromToken for BarStart {
-    fn from_token(token: &str) -> Option<Self> {
-        match token {
-            "|" => Some(BarStart::Regular),
-            "|:" => Some(BarStart::Repeat),
-            _ => None
+impl From<&str> for BarStart {
+    fn from(s: &str) -> Self {
+        match s {
+            "|" => BarStart::Regular,
+            "|:" => BarStart::Repeat,
+            _ => panic!(format!("Cannot create BarStart from {}", s))
         }
     }
 }

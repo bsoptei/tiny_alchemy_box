@@ -69,7 +69,7 @@ impl TabParser {
                         temp.set(Self::extract_num::<u8>(&current.into_inner().next().unwrap()).unwrap_or(2))
                     }
                     Rule::link => temp.set(Linked(true)),
-                    Rule::notes_modifier => temp.set(NotesModifier::from_token(current.as_str())),
+                    Rule::notes_modifier => temp.set(Some(NotesModifier::from(current.as_str()))),
                     _ => temp
                 }
             })
@@ -114,8 +114,7 @@ impl TabParser {
         Ok(
             rules.fold(Bar::default().set(time_signature), |temp, current| {
                 match current.as_rule() {
-                    Rule::bar_start =>
-                        temp.set(BarStart::from_token(current.as_str()).unwrap()),
+                    Rule::bar_start => temp.set(BarStart::from(current.as_str())),
                     Rule::bar_end => {
                         let s = current.as_str();
                         if s.starts_with('|') {
