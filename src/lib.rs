@@ -56,3 +56,15 @@ pub(crate) trait InputProcessor<P: StrToTabParser, C: Checker, V: Visualizer<()>
 pub fn process(input: &str) -> () {
     Container::process_input(input);
 }
+
+pub trait Update<T> {
+    fn update(self, elem: T) -> Self;
+}
+
+impl<T> Update<T> for Vec<T> {
+    fn update(self, elem: T) -> Self {
+        let mut temp_self = self;
+        temp_self.push(elem);
+        temp_self
+    }
+}

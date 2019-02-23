@@ -6,6 +6,7 @@ use pest::{
     iterators::{Pair, Pairs},
 };
 use pest_derive::*;
+use photonix::*;
 
 #[derive(Parser)]
 #[grammar = "tab_grammar.pest"]
@@ -41,203 +42,143 @@ impl TabParser {
     }
 
     fn extract_notes(rules: Pairs<Rule>) -> Result<TabItem, String> {
-        let mut len_temp: Option<Length> = None;
-        let mut temp_notes: Vec<Note> = Vec::new();
-        let mut is_dotted: bool = false;
-        let mut tuplet: u8 = 2;
-        let mut is_linked: bool = false;
-        let mut modifier: Option<NotesModifier> = None;
-        for rule in rules {
-            match rule.as_rule() {
-                Rule::note => {
-                    let mut string_temp: u8 = 0;
-                    let mut fret_temp: i8 = 0;
-                    for (i, num) in rule.into_inner().enumerate() {
-                        let num_str = num.as_str();
-                        if i == 0 {
-                            string_temp = str2num(num_str)
-                                .and_then(
-                                    |n| if n != 0 { Ok(n) } else { Err(String::from("String number cannot be 0")) }
-                                )?;
-                        } else if i == 1 {
-                            if num_str == "X" {
-                                fret_temp = -1;
-                            } else {
-                                fret_temp = str2num(num_str)?;
-                            }
-                        }
+        let default =
+            TabItem::new(NotesOrRest::Notes { notes: vec![] }, Length::Quarter, false, 0, false, None);
+
+        Ok(
+            rules.fold(default, |temp, current| {
+                match current.as_rule() {
+                    Rule::note => {
+                        let default = Note::new(0, 0);
+                        let new_note =
+                            current.into_inner().enumerate().fold(default, |temp, (i, num)| {
+                                let num_str = num.as_str();
+                                if i == 0 {
+                                    temp.set(str2num::<u8>(num_str).unwrap())
+                                } else if i == 1 {
+                                    if num_str == "X" { temp.set(-1i8) } else { temp.set(str2num::<i8>(num_str).unwrap()) }
+                                } else { temp }
+                            });
+                        temp.modify_second(|notes: Vec<Note>| notes.update(new_note))
                     }
-                    temp_notes.push(Note::new(string_temp, fret_temp));
-                }
-                Rule::length => {
-                    len_temp = Length::from_token(rule.as_str());
-                }
-                Rule::dot => is_dotted = true,
-                Rule::tuplet => {
-                    for notes_elem_concrete in rule.into_inner() {
-                        tuplet = Self::extract_num(&notes_elem_concrete).unwrap_or_else(|_| 2);
+                    Rule::length => {
+                        temp.set(Length::from_token(current.as_str()).unwrap())
                     }
+                    Rule::dot => temp.set(Dotted(true)),
+                    Rule::tuplet => {
+                        temp.set(Self::extract_num::<u8>(&current.into_inner().next().unwrap()).unwrap_or(2))
+                    }
+                    Rule::link => temp.set(Linked(true)),
+                    Rule::notes_modifier => temp.set(NotesModifier::from_token(current.as_str())),
+                    _ => temp
                 }
-                Rule::link => is_linked = true,
-                Rule::notes_modifier => {
-                    modifier = NotesModifier::from_token(rule.as_str());
-                }
-                _ => {}
-            }
-        }
-        match len_temp {
-            Some(length) => {
-                Ok(
-                    TabItem::new(
-                        NotesOrRest::Notes { notes: temp_notes },
-                        length,
-                        is_dotted,
-                        tuplet,
-                        is_linked,
-                        modifier,
-                    )
-                )
-            }
-            _ => Err(String::from("Could not read length of notes."))
-        }
+            })
+        )
     }
 
     fn extract_rest(rules: Pairs<Rule>) -> Result<TabItem, String> {
-        let mut len_temp: Option<Length> = None;
-        let mut is_dotted: bool = false;
-        let mut tuplet: u8 = 2;
-        let mut is_linked: bool = false;
-
-        for rest_elem in rules {
-            match rest_elem.as_rule() {
-                Rule::length => {
-                    len_temp = Length::from_token(rest_elem.as_str());
-                }
-                Rule::dot => is_dotted = true,
-                Rule::tuplet => {
-                    for rest_elem_concrete in rest_elem.into_inner() {
-                        tuplet = Self::extract_num(&rest_elem_concrete).unwrap_or_else(|_| 2);
+        let default = TabItem::new(NotesOrRest::Rest, Length::Quarter, false, 2, false, None);
+        Ok(
+            rules.fold(default, |temp, rest_elem| {
+                match rest_elem.as_rule() {
+                    Rule::length => temp.set(Length::from_token(rest_elem.as_str()).unwrap()),
+                    Rule::dot => temp.set(Dotted(true)),
+                    Rule::tuplet => {
+                        let q: u8 = rest_elem
+                            .into_inner().next()
+                            .map(|x: Pair<Rule>| Self::extract_num(&x).unwrap_or_else(|_| 2))
+                            .unwrap_or_else(|| 2);
+                        temp.set(q)
                     }
+                    Rule::link => temp.set(Linked(true)),
+                    _ => temp
                 }
-                Rule::link => is_linked = true,
-                _ => {}
-            }
-        }
-        match len_temp {
-            Some(length) => {
-                Ok(
-                    TabItem::new(
-                        NotesOrRest::Rest,
-                        length,
-                        is_dotted,
-                        tuplet,
-                        is_linked,
-                        None,
-                    )
-                )
-            }
-            _ => Err(String::from("Could not read length of rest."))
-        }
+            })
+        )
     }
 
+    #[allow(dead_code)]
     fn extract_time_signature(rules: Pairs<Rule>) -> Result<TimeSignature, String> {
-        let mut upper_temp = 0;
-        let mut lower_temp: Option<Length> = None;
-
-        for (i, num_info) in rules.enumerate() {
-            let num_info_str = num_info.as_str();
-            if i == 0 {
-                upper_temp = str2num(num_info_str)?;
-            } else if i == 1 {
-                lower_temp = Length::from_token(num_info_str);
-            }
-        }
-        match lower_temp {
-            Some(lower_temp) => {
-                Ok(TimeSignature::new_lower_length(upper_temp, lower_temp))
-            }
-            _ => Err(String::from("Wrong time signature."))
-        }
+        Ok(
+            rules.enumerate().fold(TimeSignature::default(), |temp, (i, num_info)| {
+                let num_info_str = num_info.as_str();
+                if i == 0 {
+                    let new_upper: u8 = str2num(num_info_str).unwrap();
+                    temp.set(new_upper)
+                } else if i == 1 { (temp.set(Length::from_token(num_info_str).unwrap())) } else { temp }
+            })
+        )
     }
 
     fn extract_bar(rules: Pairs<Rule>, time_signature: TimeSignature) -> Result<Bar, String> {
-        let mut tab_items: Vec<TabItem> = Vec::new();
-        let mut bar_start: BarStart = BarStart::Regular;
-        let mut bar_end: BarEnd = BarEnd::Regular;
-
-        for bar_elem_concrete in rules {
-            match bar_elem_concrete.as_rule() {
-                Rule::bar_start => {
-                    if let Some(start) = BarStart::from_token(bar_elem_concrete.as_str()) {
-                        bar_start = start
+        Ok(
+            rules.fold(Bar::default().set(time_signature), |temp, current| {
+                match current.as_rule() {
+                    Rule::bar_start =>
+                        temp.set(BarStart::from_token(current.as_str()).unwrap()),
+                    Rule::bar_end => {
+                        let s = current.as_str();
+                        if s.starts_with('|') {
+                            temp.set(BarEnd::Regular)
+                        } else if s.starts_with(":|") {
+                            temp.set(BarEnd::Repeat(str2num(&s[2..]).unwrap_or(2)))
+                        } else { temp }
                     }
-                }
-                Rule::bar_end => {
-                    let s = bar_elem_concrete.as_str();
-                    if s.starts_with('|') {
-                        bar_end = BarEnd::Regular;
-                    } else if s.starts_with(":|") {
-                        bar_end = BarEnd::Repeat(str2num(&s[2..])?);
+                    Rule::notes => {
+                        temp.modify(
+                            |items: Vec<TabItem>|
+                                items.update(Self::extract_notes(current.into_inner()).unwrap())
+                        )
                     }
+                    Rule::rest => {
+                        temp.modify(
+                            |items: Vec<TabItem>|
+                                items.update(Self::extract_rest(current.into_inner()).unwrap())
+                        )
+                    }
+                    _ => temp
                 }
-                Rule::notes => {
-                    tab_items.push(Self::extract_notes(bar_elem_concrete.into_inner())?);
-                }
-                Rule::rest => {
-                    tab_items.push(Self::extract_rest(bar_elem_concrete.into_inner())?);
-                }
-                _ => {}
-            }
-        }
-        Ok(Bar::new(time_signature, tab_items, bar_start, bar_end))
+            })
+        )
     }
 
     fn extract_tab(rules: Pairs<Rule>) -> Result<Tab, String> {
-        let mut time_signature = TimeSignature::default();
-        let mut bars_temp: Vec<Bar> = Vec::new();
-        let mut song_title = String::from("");
-        let mut num_of_strings = 0;
-        let mut song_tuning = String::from("");
-        let mut tempo = 0;
-
-        for tab_elem in rules {
-            match tab_elem.as_rule() {
-                Rule::title_declaration => {
-                    for title in tab_elem.into_inner() {
-                        song_title.push_str(title.as_str());
-                    }
-                }
-                Rule::number_of_strings_declaration => {
-                    for num in tab_elem.into_inner() {
-                        num_of_strings = str2num(num.as_str()).and_then(
-                            |n| if n > 0 { Ok(n) } else { Err(format!("Invalid number of strings {}", n)) }
-                        )?;
-                    }
-                }
-                Rule::tuning_declaration => {
-                    for tuning in tab_elem.into_inner() {
-                        song_tuning.push_str(tuning.as_str());
-                    }
-                }
-                Rule::tempo_declaration => {
-                    for num in tab_elem.into_inner() {
-                        tempo = str2num(num.as_str())?;
-                    }
-                }
-                Rule::time_signature => {
-                    time_signature = Self::extract_time_signature(tab_elem.into_inner())?
-                }
-                Rule::bar => {
-                    bars_temp.push(Self::extract_bar(tab_elem.into_inner(), time_signature)?);
-                }
-                _ => {}
-            }
-        }
+        let default = (Tab::new(TabMetaData::new("", 0, "", 0), vec![]), TimeSignature::default());
         Ok(
-            Tab::new(
-                TabMetaData::new(song_title, num_of_strings, song_tuning, tempo),
-                bars_temp)
-        )
+            rules.fold(default, |(temp_tab, temp_sig), current| {
+                match current.as_rule() {
+                    Rule::title_declaration => {
+                        (temp_tab.set_second(
+                            current.into_inner().next().map(|rule| rule.as_str()).unwrap_or("").to_owned()
+                        ), temp_sig)
+                    }
+                    Rule::number_of_strings_declaration => {
+                        (temp_tab.set_second(
+                            current.into_inner().next().and_then(|n| str2num::<u8>(n.as_str()).ok()).unwrap_or(0)
+                        ), temp_sig)
+                    }
+                    Rule::tuning_declaration => {
+                        (temp_tab.set_third(
+                            current.into_inner().next().map(|rule| rule.as_str()).unwrap_or("").to_owned()
+                        ), temp_sig)
+                    }
+                    Rule::tempo_declaration => {
+                        (temp_tab.set_second(
+                            current.into_inner().next().and_then(|n| str2num::<u16>(n.as_str()).ok()).unwrap_or(0)
+                        ), temp_sig)
+                    }
+                    Rule::time_signature => {
+                        (temp_tab, Self::extract_time_signature(current.into_inner()).unwrap())
+                    }
+                    Rule::bar => {
+                        (temp_tab.modify(
+                            |bars: Vec<Bar>| bars.update(Self::extract_bar(current.into_inner(), temp_sig).unwrap())
+                        ), temp_sig)
+                    }
+                    _ => (temp_tab, temp_sig)
+                }
+            })
+        ).map(|(tab, _)| tab)
     }
 }
 

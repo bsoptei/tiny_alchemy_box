@@ -72,7 +72,7 @@ impl Into<u8> for Length {
     }
 }
 
-#[derive(PartialEq, Debug, GetRef)]
+#[derive(PartialEq, Debug, GetRef, Set)]
 pub struct Note {
     string_num: u8,
     fret_num: i8,
@@ -84,7 +84,7 @@ impl Note {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Set, Modify)]
 pub enum NotesOrRest {
     Notes { notes: Vec<Note> },
     Rest,
@@ -127,7 +127,7 @@ pub struct Dotted(pub bool);
 #[derive(Debug, GetRef)]
 pub struct Linked(pub bool);
 
-#[derive(Debug, GetRef)]
+#[derive(Debug, GetRef, Set, Modify)]
 pub struct TabItem {
     content: NotesOrRest,
     length: Length,
@@ -136,6 +136,8 @@ pub struct TabItem {
     linked: Linked,
     modifier: Option<NotesModifier>,
 }
+
+zoom![TabItem => NotesOrRest => Vec<Note>];
 
 impl TabItem {
     pub fn new(content: NotesOrRest,
@@ -158,10 +160,6 @@ pub struct TimeSignature {
 impl TimeSignature {
     pub fn new(upper: u8, lower: u8) -> Self {
         Self { upper, lower: lower.into() }
-    }
-
-    pub fn new_lower_length(upper: u8, lower: Length) -> Self {
-        Self { upper, lower }
     }
 }
 
@@ -193,12 +191,23 @@ pub enum BarEnd {
     Repeat(u8),
 }
 
-#[derive(Debug, GetRef)]
+#[derive(Debug, GetRef, Set, Modify)]
 pub struct Bar {
     time_signature: TimeSignature,
     items: Vec<TabItem>,
     start: BarStart,
     end: BarEnd,
+}
+
+impl Default for Bar {
+    fn default() -> Self {
+        Self {
+            time_signature: TimeSignature::default(),
+            items: vec![],
+            start: BarStart::Regular,
+            end: BarEnd::Regular,
+        }
+    }
 }
 
 #[allow(dead_code)]
@@ -212,25 +221,33 @@ impl Bar {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Set, Modify)]
 pub struct TabMetaData {
     pub title: String,
     pub number_of_strings: u8,
-    pub tuning: String,
+    pub tuning: Tuning,
     pub tempo: u16,
 }
 
+#[derive(Clone, Debug, Set, Modify)]
+pub struct Tuning(pub String);
+
 impl TabMetaData {
-    pub fn new(title: String, number_of_strings: u8, tuning: String, tempo: u16) -> Self {
-        Self { title, number_of_strings, tuning, tempo }
+    pub fn new(title: &str, number_of_strings: u8, tuning: &str, tempo: u16) -> Self {
+        Self { title: title.to_string(), number_of_strings, tuning: Tuning(tuning.to_string()), tempo }
     }
 }
 
-#[derive(Debug, GetRef)]
+#[derive(Debug, GetRef, Set, Modify)]
 pub struct Tab {
     metadata: TabMetaData,
     bars: Vec<Bar>,
 }
+
+zoom![Tab => TabMetaData => u8];
+zoom![Tab => TabMetaData => u16];
+zoom![Tab => TabMetaData => String];
+zoom![Tab => TabMetaData => Tuning => String];
 
 impl Tab {
     pub fn new(metadata: TabMetaData, bars: Vec<Bar>) -> Self {

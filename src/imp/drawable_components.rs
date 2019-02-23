@@ -111,7 +111,7 @@ type Context = CanvasRenderingContext2d;
 impl Drawable<Context> for TabMetaData {
     fn draw(&self, context: &Context, position: Coordinate2D<f64>) -> () {
         let meta_text =
-            format!("Title: {} | Tuning: {} | Tempo: {}", &self.title, &self.tuning, &self.tempo);
+            format!("Title: {} | Tuning: {} | Tempo: {}", &self.title, &self.tuning.0, &self.tempo);
         fill_text(context, &meta_text, position, Some(sizes::font_size()));
     }
 }
