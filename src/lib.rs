@@ -16,10 +16,6 @@ pub(crate) fn str2num<Num: FromStr>(s: &str) -> Result<Num, String> {
     s.parse::<Num>().or_else(|_| Err(format!("Could not parse {}", s)))
 }
 
-pub(crate) trait FromToken {
-    fn from_token(token: &str) -> Option<Self> where Self: Sized;
-}
-
 type TabParsingResult = Result<Tab, String>;
 
 pub(crate) trait StrToTabParser {
@@ -55,4 +51,16 @@ pub(crate) trait InputProcessor<P: StrToTabParser, C: Checker, V: Visualizer<()>
 #[wasm_bindgen]
 pub fn process(input: &str) -> () {
     Container::process_input(input);
+}
+
+pub trait Update<T> {
+    fn update(self, elem: T) -> Self;
+}
+
+impl<T> Update<T> for Vec<T> {
+    fn update(self, elem: T) -> Self {
+        let mut temp_self = self;
+        temp_self.push(elem);
+        temp_self
+    }
 }

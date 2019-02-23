@@ -12,7 +12,7 @@ mod tests {
                 items.push(TabItem::new(NotesOrRest::Rest, Sixteenth, false, 2, false, None))
             }
             bars.push(
-                Bar::new(TimeSignature::common_time(), items, BarStart::Regular, BarEnd::Regular)
+                Bar::new(TimeSignature::default(), items, BarStart::Regular, BarEnd::Regular)
             );
         }
         let my_tab = Tab::new(

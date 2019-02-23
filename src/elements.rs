@@ -1,7 +1,5 @@
-use crate::{
-    elements::Length::*,
-    FromToken,
-};
+use crate::elements::Length::*;
+use photonix::*;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Length {
@@ -26,17 +24,17 @@ impl Length {
     }
 }
 
-impl FromToken for Length {
-    fn from_token(token: &str) -> Option<Self> {
-        match token {
-            "1L" => Some(Whole),
-            "2L" => Some(Half),
-            "4L" => Some(Quarter),
-            "8L" => Some(Eighth),
-            "16L" => Some(Sixteenth),
-            "32L" => Some(ThirtySecond),
-            "64L" => Some(SixtyFourth),
-            _ => None,
+impl From<&str> for Length {
+    fn from(s: &str) -> Self {
+        match s {
+            "1L" => Whole,
+            "2L" => Half,
+            "4L" => Quarter,
+            "8L" => Eighth,
+            "16L" => Sixteenth,
+            "32L" => ThirtySecond,
+            "64L" => SixtyFourth,
+            _ => panic!(format!("Could not create Length from {}", s))
         }
     }
 }
@@ -71,7 +69,7 @@ impl Into<u8> for Length {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, GetRef, Set)]
 pub struct Note {
     string_num: u8,
     fret_num: i8,
@@ -81,17 +79,9 @@ impl Note {
     pub fn new(string_num: u8, fret_num: i8) -> Self {
         Self { string_num, fret_num }
     }
-
-    pub fn get_string_num(&self) -> u8 {
-        self.string_num
-    }
-
-    pub fn get_fret_num(&self) -> i8 {
-        self.fret_num
-    }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Set, Modify)]
 pub enum NotesOrRest {
     Notes { notes: Vec<Note> },
     Rest,
@@ -110,35 +100,42 @@ pub enum NotesModifier {
     B5,
 }
 
-impl FromToken for NotesModifier {
-    fn from_token(token: &str) -> Option<Self> {
+impl From<&str> for NotesModifier {
+    fn from(s: &str) -> Self {
         use crate::NotesModifier::*;
-        match token {
-            "SL" => Some(SL),
-            "PM" => Some(PM),
-            "HM" => Some(HM),
-            "~~" => Some(Vibrato),
-            "B1" => Some(B1),
-            "B2" => Some(B2),
-            "B3" => Some(B3),
-            "B4" => Some(B4),
-            "B5" => Some(B5),
-            _ => None
+        match s {
+            "SL" => SL,
+            "PM" => PM,
+            "HM" => HM,
+            "~~" => Vibrato,
+            "B1" => B1,
+            "B2" => B2,
+            "B3" => B3,
+            "B4" => B4,
+            "B5" => B5,
+            _ => panic!(format!("Could not create NotesModifier from {}", s))
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, GetRef)]
+pub struct Dotted(pub bool);
+
+#[derive(Debug, GetRef)]
+pub struct Linked(pub bool);
+
+#[derive(Debug, GetRef, Set, Modify)]
 pub struct TabItem {
     content: NotesOrRest,
     length: Length,
-    dotted: bool,
+    dotted: Dotted,
     tuplet: u8,
-    linked: bool,
+    linked: Linked,
     modifier: Option<NotesModifier>,
 }
 
-#[allow(dead_code)]
+zoom![TabItem => NotesOrRest => Vec<Note>];
+
 impl TabItem {
     pub fn new(content: NotesOrRest,
                length: Length,
@@ -147,35 +144,11 @@ impl TabItem {
                linked: bool,
                modifier: Option<NotesModifier>,
     ) -> Self {
-        Self { content, length, dotted, tuplet, linked, modifier }
-    }
-
-    pub fn get_content(&self) -> &NotesOrRest {
-        &self.content
-    }
-
-    pub fn get_length(&self) -> &Length {
-        &self.length
-    }
-
-    pub fn get_modifier(&self) -> &Option<NotesModifier> {
-        &self.modifier
-    }
-
-    pub fn get_tuplet(&self) -> u8 {
-        self.tuplet
-    }
-
-    pub fn is_dotted(&self) -> bool {
-        self.dotted
-    }
-
-    pub fn is_linked(&self) -> bool {
-        self.linked
+        Self { content, length, dotted: Dotted(dotted), tuplet, linked: Linked(linked), modifier }
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug, GetRef, Set)]
 pub struct TimeSignature {
     upper: u8,
     lower: Length,
@@ -185,21 +158,11 @@ impl TimeSignature {
     pub fn new(upper: u8, lower: u8) -> Self {
         Self { upper, lower: lower.into() }
     }
+}
 
-    pub fn new_lower_length(upper: u8, lower: Length) -> Self {
-        Self { upper, lower }
-    }
-
-    pub fn common_time() -> Self {
+impl Default for TimeSignature {
+    fn default() -> Self {
         Self::new(4, 4)
-    }
-
-    pub fn get_upper(self) -> u8 {
-        self.upper
-    }
-
-    pub fn get_lower(self) -> u8 {
-        self.lower.into()
     }
 }
 
@@ -209,12 +172,12 @@ pub enum BarStart {
     Repeat,
 }
 
-impl FromToken for BarStart {
-    fn from_token(token: &str) -> Option<Self> {
-        match token {
-            "|" => Some(BarStart::Regular),
-            "|:" => Some(BarStart::Repeat),
-            _ => None
+impl From<&str> for BarStart {
+    fn from(s: &str) -> Self {
+        match s {
+            "|" => BarStart::Regular,
+            "|:" => BarStart::Repeat,
+            _ => panic!(format!("Cannot create BarStart from {}", s))
         }
     }
 }
@@ -225,12 +188,23 @@ pub enum BarEnd {
     Repeat(u8),
 }
 
-#[derive(Debug)]
+#[derive(Debug, GetRef, Set, Modify)]
 pub struct Bar {
     time_signature: TimeSignature,
     items: Vec<TabItem>,
     start: BarStart,
     end: BarEnd,
+}
+
+impl Default for Bar {
+    fn default() -> Self {
+        Self {
+            time_signature: TimeSignature::default(),
+            items: vec![],
+            start: BarStart::Regular,
+            end: BarEnd::Regular,
+        }
+    }
 }
 
 #[allow(dead_code)]
@@ -242,56 +216,39 @@ impl Bar {
     pub fn length(&self) -> usize {
         self.items.len()
     }
-
-    pub fn get_time_signature(&self) -> &TimeSignature {
-        &self.time_signature
-    }
-
-    pub fn get_items(&self) -> &Vec<TabItem> {
-        &self.items
-    }
-
-    pub fn get_start(&self) -> &BarStart {
-        &self.start
-    }
-
-    pub fn get_end(&self) -> &BarEnd {
-        &self.end
-    }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Set, Modify)]
 pub struct TabMetaData {
     pub title: String,
     pub number_of_strings: u8,
-    pub tuning: String,
+    pub tuning: Tuning,
     pub tempo: u16,
 }
 
+#[derive(Clone, Debug, Set, Modify)]
+pub struct Tuning(pub String);
+
 impl TabMetaData {
-    pub fn new(title: String, number_of_strings: u8, tuning: String, tempo: u16) -> Self {
-        Self { title, number_of_strings, tuning, tempo }
+    pub fn new(title: &str, number_of_strings: u8, tuning: &str, tempo: u16) -> Self {
+        Self { title: title.to_string(), number_of_strings, tuning: Tuning(tuning.to_string()), tempo }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, GetRef, Set, Modify)]
 pub struct Tab {
     metadata: TabMetaData,
     bars: Vec<Bar>,
 }
 
+zoom![Tab => TabMetaData => u8];
+zoom![Tab => TabMetaData => u16];
+zoom![Tab => TabMetaData => String];
+zoom![Tab => TabMetaData => Tuning => String];
+
 impl Tab {
     pub fn new(metadata: TabMetaData, bars: Vec<Bar>) -> Self {
         Self { metadata, bars }
-    }
-
-    #[allow(dead_code)]
-    pub fn get_bars(&self) -> &Vec<Bar> {
-        &self.bars
-    }
-
-    pub fn get_metadata(&self) -> &TabMetaData {
-        &self.metadata
     }
 
     pub fn into_lines(self, max_items_per_line: usize) -> Vec<TabLine> {
@@ -320,7 +277,7 @@ impl Tab {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, GetRef)]
 pub struct TabLine {
     bars: Vec<Bar>
 }
@@ -328,9 +285,5 @@ pub struct TabLine {
 impl TabLine {
     pub fn new(bars: Vec<Bar>) -> Self {
         Self { bars }
-    }
-
-    pub fn get_bars(&self) -> &Vec<Bar> {
-        &self.bars
     }
 }
