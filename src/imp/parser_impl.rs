@@ -62,7 +62,7 @@ impl TabParser {
                         temp.modify_second(|notes: Vec<Note>| notes.update(new_note))
                     }
                     Rule::length => {
-                        temp.set(Length::from_token(current.as_str()).unwrap())
+                        temp.set(Length::from(current.as_str()))
                     }
                     Rule::dot => temp.set(Dotted(true)),
                     Rule::tuplet => {
@@ -81,7 +81,7 @@ impl TabParser {
         Ok(
             rules.fold(default, |temp, rest_elem| {
                 match rest_elem.as_rule() {
-                    Rule::length => temp.set(Length::from_token(rest_elem.as_str()).unwrap()),
+                    Rule::length => temp.set(Length::from(rest_elem.as_str())),
                     Rule::dot => temp.set(Dotted(true)),
                     Rule::tuplet => {
                         let q: u8 = rest_elem
@@ -105,7 +105,7 @@ impl TabParser {
                 if i == 0 {
                     let new_upper: u8 = str2num(num_info_str).unwrap();
                     temp.set(new_upper)
-                } else if i == 1 { (temp.set(Length::from_token(num_info_str).unwrap())) } else { temp }
+                } else if i == 1 { (temp.set(Length::from(num_info_str))) } else { temp }
             })
         )
     }

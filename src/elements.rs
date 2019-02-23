@@ -27,17 +27,17 @@ impl Length {
     }
 }
 
-impl FromToken for Length {
-    fn from_token(token: &str) -> Option<Self> {
-        match token {
-            "1L" => Some(Whole),
-            "2L" => Some(Half),
-            "4L" => Some(Quarter),
-            "8L" => Some(Eighth),
-            "16L" => Some(Sixteenth),
-            "32L" => Some(ThirtySecond),
-            "64L" => Some(SixtyFourth),
-            _ => None,
+impl From<&str> for Length {
+    fn from(s: &str) -> Self {
+        match s {
+            "1L" => Whole,
+            "2L" => Half,
+            "4L" => Quarter,
+            "8L" => Eighth,
+            "16L" => Sixteenth,
+            "32L" => ThirtySecond,
+            "64L" => SixtyFourth,
+            _ => panic![format!("Could not create Length from {}", s)]
         }
     }
 }
