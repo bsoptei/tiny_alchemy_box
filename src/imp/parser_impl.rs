@@ -54,9 +54,9 @@ impl TabParser {
                             current.into_inner().enumerate().fold(default, |temp, (i, num)| {
                                 let num_str = num.as_str();
                                 if i == 0 {
-                                    temp.set(str2num::<u8>(num_str).unwrap())
+                                    temp.set(str2num::<u8>(num_str).unwrap_or(0))
                                 } else if i == 1 {
-                                    if num_str == "X" { temp.set(-1i8) } else { temp.set(str2num::<i8>(num_str).unwrap()) }
+                                    if num_str == "X" { temp.set(-1i8) } else { temp.set(str2num::<i8>(num_str).unwrap_or(0)) }
                                 } else { temp }
                             });
                         temp.modify_second(|notes: Vec<Note>| notes.update(new_note))
@@ -66,7 +66,12 @@ impl TabParser {
                     }
                     Rule::dot => temp.set(Dotted(true)),
                     Rule::tuplet => {
-                        temp.set(Self::extract_num::<u8>(&current.into_inner().next().unwrap()).unwrap_or(2))
+                        temp.set(
+                            current
+                                .into_inner()
+                                .next()
+                                .and_then(|rule| Self::extract_num::<u8>(&rule).ok()).unwrap_or(2)
+                        )
                     }
                     Rule::link => temp.set(Linked(true)),
                     Rule::notes_modifier => temp.set(Some(NotesModifier::from(current.as_str()))),
@@ -103,7 +108,7 @@ impl TabParser {
             rules.enumerate().fold(TimeSignature::default(), |temp, (i, num_info)| {
                 let num_info_str = num_info.as_str();
                 if i == 0 {
-                    let new_upper: u8 = str2num(num_info_str).unwrap();
+                    let new_upper: u8 = str2num(num_info_str).unwrap_or(*temp.get_ref());
                     temp.set(new_upper)
                 } else if i == 1 { (temp.set(Length::from(num_info_str))) } else { temp }
             })
@@ -126,13 +131,19 @@ impl TabParser {
                     Rule::notes => {
                         temp.modify(
                             |items: Vec<TabItem>|
-                                items.update(Self::extract_notes(current.into_inner()).unwrap())
+                                if let Some(new_item) =
+                                Self::extract_notes(current.into_inner()).ok() {
+                                    items.update(new_item)
+                                } else { items }
                         )
                     }
                     Rule::rest => {
                         temp.modify(
                             |items: Vec<TabItem>|
-                                items.update(Self::extract_rest(current.into_inner()).unwrap())
+                                if let Some(new_item) =
+                                Self::extract_rest(current.into_inner()).ok() {
+                                    items.update(new_item)
+                                } else { items }
                         )
                     }
                     _ => temp
@@ -167,11 +178,19 @@ impl TabParser {
                         ), temp_sig)
                     }
                     Rule::time_signature => {
-                        (temp_tab, Self::extract_time_signature(current.into_inner()).unwrap())
+                        (
+                            temp_tab,
+                            Self::extract_time_signature(current.into_inner())
+                                .unwrap_or(TimeSignature::default())
+                        )
                     }
                     Rule::bar => {
                         (temp_tab.modify(
-                            |bars: Vec<Bar>| bars.update(Self::extract_bar(current.into_inner(), temp_sig).unwrap())
+                            |bars: Vec<Bar>|
+                                if let Some(new_bar) =
+                                Self::extract_bar(current.into_inner(), temp_sig).ok() {
+                                    bars.update(new_bar)
+                                } else { bars }
                         ), temp_sig)
                     }
                     _ => (temp_tab, temp_sig)
