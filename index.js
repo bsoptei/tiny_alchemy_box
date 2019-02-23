@@ -16,7 +16,9 @@ import('./tiny_alchemy_box')
         boxEffects.forEach((effect) => {
             scriptBox.addEventListener(effect, () => {
                 const startPosition = scriptBox.selectionStart;
-                positionIndicator.innerHTML = `Cursor position: ${startPosition}`
+                const textUntil = scriptBox.value.slice(0, startPosition);
+                const barNumber = Math.round((textUntil.match(/[|]/g) || []).length / 2);
+                positionIndicator.innerHTML = `Cursor position: ${startPosition} Bar number: ${barNumber}`
             });
         });
     })
