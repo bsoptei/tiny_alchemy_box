@@ -43,7 +43,7 @@ impl TabParser {
 
     fn extract_notes(rules: Pairs<Rule>) -> Result<TabItem, String> {
         let default =
-            TabItem::new(NotesOrRest::Notes { notes: vec![] }, Length::Quarter, false, 0, false, None);
+            TabItem::new(NotesOrRest::Notes { notes: vec![] }, Length::Quarter, false, 2, false, None);
 
         Ok(
             rules.fold(default, |temp, current| {

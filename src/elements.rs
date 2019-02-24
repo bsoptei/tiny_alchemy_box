@@ -218,7 +218,7 @@ impl Bar {
     }
 }
 
-#[derive(Clone, Debug, Set, Modify)]
+#[derive(Clone, Debug, Get, GetRef, Set, Modify)]
 pub struct TabMetaData {
     pub title: String,
     pub number_of_strings: u8,
@@ -235,13 +235,13 @@ impl TabMetaData {
     }
 }
 
-#[derive(Debug, GetRef, Set, Modify)]
+#[derive(Debug, Get, GetRef, Set, Modify)]
 pub struct Tab {
     metadata: TabMetaData,
     bars: Vec<Bar>,
 }
 
-zoom![Tab => TabMetaData => u8];
+zoom_all![Tab => TabMetaData => u8];
 zoom![Tab => TabMetaData => u16];
 zoom![Tab => TabMetaData => String];
 zoom![Tab => TabMetaData => Tuning => String];
