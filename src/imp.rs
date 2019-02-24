@@ -12,13 +12,13 @@ use self::{
     visualizer_impl::*,
 };
 
-impl Dependencies<TabParser, BypassChecker, CanvasVisualizer> for Container {
+impl Dependencies<TabParser, SimpleChecker, CanvasVisualizer> for Container {
     fn parser() -> TabParser {
         TabParser
     }
 
-    fn checker() -> BypassChecker {
-        BypassChecker
+    fn checker() -> SimpleChecker {
+        SimpleChecker
     }
 
     fn visualizer() -> CanvasVisualizer {
@@ -26,4 +26,4 @@ impl Dependencies<TabParser, BypassChecker, CanvasVisualizer> for Container {
     }
 }
 
-impl InputProcessor<TabParser, BypassChecker, CanvasVisualizer> for Container {}
+impl InputProcessor<TabParser, SimpleChecker, CanvasVisualizer> for Container {}
