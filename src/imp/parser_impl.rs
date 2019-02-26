@@ -333,7 +333,7 @@ mod tests {
         assert!(
             TabParser::parse(
                 Rule::tab,
-                "title I'm the Ocean;\nnumber of strings 8;\ntuning DGDGCFAd;\ntempo 120 bpm;\nT7/8L|N S4F2,16L N S4F2,16L||N S4F1,16L|",
+                "title I'm the Ocean;\nnumber of strings 8;\ntuning DGDGCFAd;\ntempo 120 bpm;\nT7/8L|N S4F2,16L N S4F2,16L||N S4F1,16L| ||",
             ).is_ok()
         );
     }
