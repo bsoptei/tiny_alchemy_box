@@ -7,7 +7,7 @@ import('./tiny_alchemy_box')
         renderButton.addEventListener('click', () => {
             const inputText = scriptBox.value;
             if (inputText.length > 0) {
-                wasm.process(scriptBox.value);
+                wasm.process(inputText);
             }
         });
 
